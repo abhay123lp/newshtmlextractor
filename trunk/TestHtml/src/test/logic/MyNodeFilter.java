@@ -32,7 +32,7 @@ public class MyNodeFilter implements NodeFilter
 				if(targetNode instanceof LinkTag)
 				{
 					((AdvanceTextNode)tempNode).setWithinHref(true);
-					return false;//for testing,temporarily remove the <a>
+					//return false;//for testing,temporarily remove the <a>
 				}
 			}
 			((AdvanceTextNode)tempNode).setHtmlPath(htmlPathString);

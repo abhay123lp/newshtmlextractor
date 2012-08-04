@@ -9,6 +9,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.htmlparser.*;
+import org.htmlparser.nodes.TagNode;
+import org.htmlparser.nodes.TextNode;
+import org.htmlparser.tags.LinkTag;
+import org.htmlparser.tags.ParagraphTag;
+import org.htmlparser.util.NodeList;
+import org.htmlparser.util.SimpleNodeIterator;
 
 import test.basic.AdvanceTextNode;
 import test.basic.NewsRecord;
@@ -33,9 +39,60 @@ public class HtmlWrapper
 			TextNumber = tn;
 		}
 	}
+	private String extractTagNodeText(TagNode node)
+	{
+		String resultString = "";
+		NodeList nodes = node.getChildren();
+		if(nodes == null)
+			return resultString;
+		SimpleNodeIterator iterator = nodes.elements();
+		while(iterator.hasMoreNodes())
+		{
+			Node newNode = iterator.nextNode();
+			if(newNode instanceof TextNode)
+				resultString += ((AdvanceTextNode)newNode).getText();
+			else if(newNode instanceof TagNode)
+			{
+				resultString += extractTagNodeText(node);
+			}
+		}
+		return resultString;
+	}
 	public String extractBlockText(Block block)
 	{
 		String resultString = "";
+		/*Node startNode = mTextNodes.get(block.StartIndex).getParent(),endNode = mTextNodes.get(block.EndIndex).getParent();
+		Node tempNode = startNode;
+		while((tempNode) != null)
+		{
+			if(tempNode == endNode)
+			{
+				resultString += extractTagNodeText((TagNode)tempNode);//tempNode.getText() + "\n";
+				break;
+			}
+			if(tempNode instanceof ParagraphTag)
+			{
+				resultString += extractTagNodeText((TagNode)tempNode);//tempNode.getText() + "\n";
+			}
+			else if(tempNode instanceof LinkTag)
+			{
+				resultString += extractTagNodeText((TagNode)tempNode);
+				//NodeList nodeList = tempNode.getChildren();
+				//if(nodeList != null)
+				//{
+					//SimpleNodeIterator iterator = nodeList.elements();
+					//while(iterator.hasMoreNodes())
+					//{
+					//	Node node = iterator.nextNode();
+					//	if(node instanceof TextNode)
+					//	{
+					//		resultString += ((AdvanceTextNode)node).getText();
+					//	}
+					//}
+				//}
+			}
+			tempNode = tempNode.getNextSibling();
+		}*/
 		for (int i = block.StartIndex; i <= block.EndIndex; i++) {
 			resultString += mTextNodes.get(i).getText() + "\n";
 		}
@@ -85,6 +142,8 @@ public class HtmlWrapper
 		for (int i = 0; i < mTextNodes.size(); i++) 
 		{
 			AdvanceTextNode node = mTextNodes.get(i);
+			if(node.getWithinHref())
+				continue;
 			//if(node.getText().length() < theLeastCharacterNumberNeededToBeConsideredAsContent)
 			//	continue;
 			Block block = new Block();
@@ -140,9 +199,7 @@ public class HtmlWrapper
 		Block block = mBlockList.get(indexOfMostPossibleBlock);
 		//for content,we simply concat all the text within the block
 		String contentString = "";
-		for (int i = block.StartIndex; i <= block.EndIndex; i++) {
-			contentString += mTextNodes.get(i).getText() + '\n';
-		}
+		contentString = this.extractBlockText(block);
 		resultNewsRecord.NewsContent = contentString;
 		resultNewsRecord.contentHtmlPathString = block.HtmlPath;
 		//for title,we search all the text nodes before the content block
