@@ -1,6 +1,7 @@
 package test.logic;
 import org.htmlparser.*;
 import org.htmlparser.nodes.TagNode;
+import org.htmlparser.nodes.TextNode;
 import org.htmlparser.tags.LinkTag;
 
 import test.basic.AdvanceTextNode;
@@ -15,10 +16,12 @@ public class MyNodeFilter implements NodeFilter
 		// TODO Auto-generated method stub
 		if(targetNode instanceof Text) // rule out useless text
 		{
-			String string = targetNode.getText();
-			string = string.replaceAll(" ", "");
-			if(string.length() < 2) //直接去掉
+			if(((AdvanceTextNode)targetNode).isWhiteSpace())
 				return false;
+			//String string = targetNode.getText();
+			//string = string.replaceAll(" ", "");
+			//if(string.length() < 2) //直接去掉
+				//return false;
 			//targetNode.setText(string);
 			String htmlPathString = "";
 			//nows let's see whether it's inside an <A>

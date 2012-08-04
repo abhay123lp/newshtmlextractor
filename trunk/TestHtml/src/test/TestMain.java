@@ -19,6 +19,7 @@ public class TestMain {
 	 */
 	public static void main(String[] args) 
 	{
+		//File rootFile = new File("C:\\Users\\firstprayer\\Desktop\\temp1\\temp");//
 		File rootFile = new File("C:\\Users\\firstprayer\\Desktop\\新建文件夹");
 		File[] archiveListFiles = rootFile.listFiles(new FileFilter() {
 			

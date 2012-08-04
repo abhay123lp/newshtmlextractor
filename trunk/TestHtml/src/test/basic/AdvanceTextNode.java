@@ -12,6 +12,16 @@ public class AdvanceTextNode extends TextNode
 		super(text);
 		// TODO Auto-generated constructor stub
 	}
+	@Override
+	public boolean isWhiteSpace()
+	{
+		String string = this.getText();
+		for (int i = 0; i < string.length(); i++) {
+			if(string.indexOf(i) != ' ')
+				return false;
+		}
+		return true;
+	}
 	public AdvanceTextNode(Page page,int start,int end)
 	{
 		super(page,start,end);
