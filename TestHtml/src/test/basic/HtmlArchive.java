@@ -158,8 +158,12 @@ public class HtmlArchive
 				}
 				htmlWrapper.InitializeBlockList();
 				NewsRecord resultNewsRecord = htmlWrapper.Manipulate();
-				resultNewsRecord.Index = i;
-				mRecordList.add(resultNewsRecord);
+				if(resultNewsRecord != null)
+				{
+					resultNewsRecord.Index = i;
+					mRecordList.add(resultNewsRecord);
+				}
+				
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
