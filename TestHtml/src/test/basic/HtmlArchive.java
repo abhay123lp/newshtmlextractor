@@ -149,11 +149,17 @@ public class HtmlArchive
 				Node[] nodes = nodeList.toNodeArray();
 				//clear the wrapper to new nodes to be added into and processed
 				htmlWrapper.clear();
+				Vector<AdvanceTextNode> ruledOutHrefTextNodes = new Vector<AdvanceTextNode>();
 				for (int j = 0; j < nodes.length; j++) 
 				{
 					if(nodes[j] instanceof TextNode)
 					{
-						htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+						//if(((AdvanceTextNode)nodes[j]).getWithinHref() == false)
+							htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+						//else 
+						//{
+						//	ruledOutHrefTextNodes.add((AdvanceTextNode)nodes[j]);
+						//}
 					}
 				}
 				htmlWrapper.InitializeBlockList();
