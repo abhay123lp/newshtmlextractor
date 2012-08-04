@@ -108,11 +108,12 @@ public class HtmlWrapper
 				}
 			}
 			block.EndIndex = j - 1;
-			if(block.TextNumber == 1)
+			block.ImportanceFactor = length;
+			/*if(block.TextNumber == 1)
 				block.ImportanceFactor = length;
 			else {
 				block.ImportanceFactor = (int) (length * (Math.log(block.TextNumber + 1)));
-			}
+				}*/
 			//should we set a limitation of the Importance Factor here?
 			i = j - 1;
 			mBlockList.add(block);
