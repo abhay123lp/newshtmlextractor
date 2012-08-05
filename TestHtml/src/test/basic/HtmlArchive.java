@@ -347,59 +347,34 @@ public class HtmlArchive
 						bodyIndex = updateBodyIndex;
 					}
 					
-					for (int m = bodyIndex - 1;m >= 0; m--) {
-						Block block = htmlWrapper.getBlock(m);
-						if(!timeMatch && block.HtmlPath.equals(mostPossibleTimePath))
+					timeIndex = htmlWrapper.getBlock(bodyIndex).StartIndex;
+					for (int m = timeIndex - 1;m >= 0; m--) {
+						AdvanceTextNode node = htmlWrapper.getNode(m);
+						if(timeMatch)
 						{
-							Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d\\D+?\\d?\\d");
-							String timeContentString = htmlWrapper.extractBlockText(block);
-							Matcher timeMatcher = timePattern.matcher(timeContentString);
-							if(timeMatcher.find())
+							GregorianCalendar timeCalendar = HtmlWrapper.extractTimeFromString(node.getText());
+							if(timeCalendar != null)
 							{
-								String timeString =  timeMatcher.group();
-								Pattern intPattern = Pattern.compile("\\d{1,4}");
-								Matcher intMatcher = intPattern.matcher(timeString);
-								intMatcher.find();
-								int year = Integer.parseInt(intMatcher.group()) ;
-								intMatcher.find();
-								int month = Integer.parseInt(intMatcher.group()) ;
-								intMatcher.find();
-								int day = Integer.parseInt(intMatcher.group()) ;
-								intMatcher.find();
-								int hours = Integer.parseInt(intMatcher.group()) ;
-								intMatcher.find();
-								int minutes = Integer.parseInt(intMatcher.group()) ;
-								int sec = 0;
-								if(intMatcher.find())
-								{
-									sec = Integer.parseInt(intMatcher.group());
-								}
-								record.timeHtmlPathString = block.HtmlPath;
-								record.NewsTime = new GregorianCalendar(year, month, day, hours,minutes, sec);
-								updateTimeIndex = m;
+								timeIndex = m;
 								break;
 							}
 						}
-						Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d\\D+?\\d?\\d");
-						String timeContentString = htmlWrapper.extractBlockText(block);
-						Matcher timeMatcher = timePattern.matcher(timeContentString);
-						if(timeMatcher.find())
-						{
-							originTimeIndex = m;
-							break;
+						else {
+							if(node.getHtmlPath().equals(mostPossibleTimePath))
+							{
+								GregorianCalendar timeCalendar = HtmlWrapper.extractTimeFromString(node.getText());
+								if(timeCalendar != null)
+								{
+									timeIndex = m;
+									record.NewsTime = timeCalendar;
+									record.timeHtmlPathString = mostPossibleTimePath;
+									break;
+								}
+							}
 						}
 					}
-					if(updateTimeIndex < 0)
-					{
-						timeIndex = originTimeIndex;
-					}
-					else
-					{
-						timeIndex = updateTimeIndex;
-					}
 					
-					Block block = htmlWrapper.getBlock(timeIndex);
-					for(int n = block.StartIndex - 1; n >= 0; n--) {
+					for(int n = timeIndex - 1; n >= 0; n--) {
 						AdvanceTextNode titleTextNode = htmlWrapper.getNode(n);
 						if(!titleMatch && titleTextNode.exactHtmlPath.equals(mostPossibleTitlePath))
 						{
@@ -408,6 +383,7 @@ public class HtmlArchive
 							break;
 						}
 					}
+					
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
