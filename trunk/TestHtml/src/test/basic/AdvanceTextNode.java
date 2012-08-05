@@ -16,12 +16,18 @@ public class AdvanceTextNode extends TextNode
 	@Override
 	public boolean isWhiteSpace()
 	{
-		String string = this.getText();
+		String string = this.getText().replaceAll(" ", "");
+		/*String string = this.getText();
 		for (int i = 0; i < string.length(); i++) {
 			if(string.indexOf(i) != ' ')
 				return false;
-		}
 		return true;
+		}*/
+		if(string.length() < 2)
+			return true;
+		else
+			return false;
+		
 	}
 	public AdvanceTextNode(Page page,int start,int end)
 	{

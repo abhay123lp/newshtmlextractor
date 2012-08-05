@@ -184,9 +184,22 @@ public class HtmlWrapper
 			int length = node.getText().length();
 			int j = i + 1;
 			//we agregate all **consecutive** text nodes that has the **same htmlPath**
+			int accumulateContinuousHrefNum = 0;
 			while(j < mTextNodes.size())
 			{
 				AdvanceTextNode nextNode = mTextNodes.get(j);
+				if(nextNode.getWithinHref())
+				{
+					if(accumulateContinuousHrefNum > 1)
+					{
+						j--;
+						break;
+					}
+					j++;
+					accumulateContinuousHrefNum++;
+					continue;
+				}
+				accumulateContinuousHrefNum = 0;
 				if(nextNode.getHtmlPath().equals(node.getHtmlPath()))
 				{
 					length += nextNode.getText().length();

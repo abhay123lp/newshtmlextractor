@@ -82,6 +82,7 @@ public class HtmlManager
 		}
 		//we shall be more specific here
 		//we are going to retrieve the skeleton of the html
+		
 		return resultPatternList;
 	}
 	protected Vector<HtmlArchive> mHtmlArchives = new Vector<HtmlArchive>();
