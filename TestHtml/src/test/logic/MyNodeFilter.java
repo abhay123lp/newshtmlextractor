@@ -23,23 +23,41 @@ public class MyNodeFilter implements NodeFilter
 			//if(string.length() < 2) //Ö±½ÓÈ¥µô
 				//return false;
 			//targetNode.setText(string);
-			String htmlPathString = "";
+			String htmlPathString = "", exactPathString = "";
+			String parentName = "";
 			//nows let's see whether it's inside an <A>
 			Node tempNode = targetNode;
 			while((targetNode = targetNode.getParent()) != null)
 			{
+				int sequence = 0;
+				Node siblingNode = targetNode;
+				parentName = ((TagNode)targetNode).getTagName();
 				htmlPathString = ((TagNode)targetNode).getTagName() + "/" + htmlPathString;
+				while((siblingNode = siblingNode.getPreviousSibling()) != null)
+				{
+					if(siblingNode.getClass().equals(targetNode) != true)
+					{
+						continue;
+					}
+					if(((TagNode)siblingNode).getTagName().equals(parentName) == true)
+					{
+						sequence++;
+					}
+				}
+				exactPathString = ((TagNode)targetNode).getTagName() + sequence + "/" + exactPathString;
 				if(targetNode instanceof LinkTag)
 				{
 					((AdvanceTextNode)tempNode).setWithinHref(true);
 					//return false;//for testing,temporarily remove the <a>
 				}
+				
+				
 			}
 			((AdvanceTextNode)tempNode).setHtmlPath(htmlPathString);
+			((AdvanceTextNode)tempNode).setExactHtmlPath(exactPathString);
 			targetNode = tempNode;
 		}
 		
 		return true;
 	}
-	
 }
