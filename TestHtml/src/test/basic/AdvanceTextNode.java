@@ -7,6 +7,7 @@ public class AdvanceTextNode extends TextNode
 {
 	private boolean mIsWithinHref = false;
 	public String mHtmlPath;
+	public String exactHtmlPath;
 	private int mIndex;//auxillary variable to help locating in array
 	public AdvanceTextNode(String text) {
 		super(text);
@@ -37,9 +38,17 @@ public class AdvanceTextNode extends TextNode
 	{
 		mHtmlPath = str;
 	}
+	public void setExactHtmlPath(String str)
+	{
+		exactHtmlPath = str;
+	}
 	public String getHtmlPath()
 	{
 		return mHtmlPath;
+	}
+	public String getExactHtmlPath()
+	{
+		return exactHtmlPath;
 	}
 	public void setIndex(int i)
 	{
