@@ -203,64 +203,64 @@ public class HtmlWrapper
 		resultNewsRecord.NewsContent = contentString;
 		resultNewsRecord.contentHtmlPathString = block.HtmlPath;
 		//for time, we use regex expression, and search all the text nodes before the content block
-				//also, we assume that the right time is the closest time before the content block.
-				AdvanceTextNode tempAdvanceTextNode, timeNode = null;
-				int timeIndex = block.StartIndex;
-				Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d\\D+?\\d?\\d");
-				Matcher timeMatcher = null;
-				for (int i = block.StartIndex; i >= 0; i--) {
-					tempAdvanceTextNode = mTextNodes.get(i);
-					timeMatcher = timePattern.matcher(tempAdvanceTextNode.getText());
-					if(timeMatcher.find())
-					{
-						timeIndex = i;
-						timeNode = tempAdvanceTextNode;
-						break;
-					}
-				}
-				if(timeNode == null || timeMatcher == null)
-					resultNewsRecord.NewsTime = null;
-				else {
-					String timeString =  timeMatcher.group();
-					Pattern intPattern = Pattern.compile("\\d{1,4}");
-					Matcher intMatcher = intPattern.matcher(timeString);
-					intMatcher.find();
-					int year = Integer.parseInt(intMatcher.group()) ;
-					intMatcher.find();
-					int month = Integer.parseInt(intMatcher.group()) ;
-					intMatcher.find();
-					int day = Integer.parseInt(intMatcher.group()) ;
-					intMatcher.find();
-					int hours = Integer.parseInt(intMatcher.group()) ;
-					intMatcher.find();
-					int minutes = Integer.parseInt(intMatcher.group()) ;
-					int sec = 0;
-					if(intMatcher.find())
-					{
-						sec = Integer.parseInt(intMatcher.group());
-					}
-					resultNewsRecord.NewsTime = new GregorianCalendar(year, month, day, hours,minutes, sec);
-					resultNewsRecord.timeHtmlPathString = timeNode.getHtmlPath();
-				}
-				AdvanceTextNode titleTextNode = null;
-				Pattern titlePattern = Pattern.compile("[\u4E00-\u9FA5]{2,}.*?[\u4E00-\u9FA5]{2,}");
-				Matcher titleMatcher = null;
-				for (int i = timeIndex - 1; i >= 0; i--) {
-					tempAdvanceTextNode = mTextNodes.get(i);
-					titleMatcher = titlePattern.matcher(tempAdvanceTextNode.getText());
-					if(titleMatcher.find())
-					{
-						titleTextNode = tempAdvanceTextNode;
-						break;
-					}
-				}
-				if(titleTextNode == null)
-					resultNewsRecord.NewsTitle = null;
-				else {
-					resultNewsRecord.titleHtmlPathString = titleTextNode.getHtmlPath();
-					resultNewsRecord.NewsTitle = titleTextNode.getText();
-				}
-				return resultNewsRecord;
+		//also, we assume that the right time is the closest time before the content block.
+		AdvanceTextNode tempAdvanceTextNode, timeNode = null;
+		int timeIndex = block.StartIndex;
+		Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d\\D+?\\d?\\d");
+		Matcher timeMatcher = null;
+		for (int i = block.StartIndex; i >= 0; i--) {
+			tempAdvanceTextNode = mTextNodes.get(i);
+			timeMatcher = timePattern.matcher(tempAdvanceTextNode.getText());
+			if(timeMatcher.find())
+			{
+				timeIndex = i;
+				timeNode = tempAdvanceTextNode;
+				break;
+			}
+		}
+		if(timeNode == null || timeMatcher == null)
+			resultNewsRecord.NewsTime = null;
+		else {
+			String timeString =  timeMatcher.group();
+			Pattern intPattern = Pattern.compile("\\d{1,4}");
+			Matcher intMatcher = intPattern.matcher(timeString);
+			intMatcher.find();
+			int year = Integer.parseInt(intMatcher.group()) ;
+			intMatcher.find();
+			int month = Integer.parseInt(intMatcher.group()) ;
+			intMatcher.find();
+			int day = Integer.parseInt(intMatcher.group()) ;
+			intMatcher.find();
+			int hours = Integer.parseInt(intMatcher.group()) ;
+			intMatcher.find();
+			int minutes = Integer.parseInt(intMatcher.group()) ;
+			int sec = 0;
+			if(intMatcher.find())
+			{
+				sec = Integer.parseInt(intMatcher.group());
+			}
+			resultNewsRecord.NewsTime = new GregorianCalendar(year, month, day, hours,minutes, sec);
+			resultNewsRecord.timeHtmlPathString = timeNode.getHtmlPath();
+		}
+		AdvanceTextNode titleTextNode = null;
+		Pattern titlePattern = Pattern.compile("[\u4E00-\u9FA5]{2,}.*?[\u4E00-\u9FA5]{2,}");
+		Matcher titleMatcher = null;
+		for (int i = timeIndex - 1; i >= 0; i--) {
+			tempAdvanceTextNode = mTextNodes.get(i);
+			titleMatcher = titlePattern.matcher(tempAdvanceTextNode.getText());
+			if(titleMatcher.find())
+			{
+				titleTextNode = tempAdvanceTextNode;
+				break;
+			}
+		}
+		if(titleTextNode == null)
+			resultNewsRecord.NewsTitle = null;
+		else {
+			resultNewsRecord.titleHtmlPathString = titleTextNode.getExactHtmlPath();
+			resultNewsRecord.NewsTitle = titleTextNode.getText();
+		}
+		return resultNewsRecord;
 				/*
 		//for title,we search all the text nodes before the content block
 		//and assume the title is inside the h1-h7 tag which is cloest to the content block
