@@ -318,6 +318,8 @@ public class HtmlArchive
 					}
 					htmlWrapper.InitializeBlockList();
 					int lastImportantFactor = 0;
+					int originBodyIndex = -1, bodyIndex = -1, updateBodyIndex = -1;
+					int timeIndex = -1;
 					for (int j = 0; j < htmlWrapper.getBlockNumber(); j++) {
 						Block block = htmlWrapper.getBlock(j);
 						if(!contentMatch && block.HtmlPath.equals(mostPossibleContentPath))
@@ -327,45 +329,81 @@ public class HtmlArchive
 								record.contentHtmlPathString = mostPossibleContentPath;
 								record.NewsContent = htmlWrapper.extractBlockText(block);
 								lastImportantFactor = block.ImportanceFactor;
-								continue;
+								updateBodyIndex = j;
+							}		
+						}	
+						if(block.ImportanceFactor > lastImportantFactor)
+						{
+							lastImportantFactor = block.ImportanceFactor;
+							originBodyIndex = j;
+						}
+					}
+					if(updateBodyIndex < 0)
+					{
+						bodyIndex = originBodyIndex;
+					}
+					else
+					{
+						bodyIndex = updateBodyIndex;
+					}
+					if(bodyIndex == updateBodyIndex)
+					{
+						for (int m = bodyIndex - 1;m >= 0; m--) {
+							Block block = htmlWrapper.getBlock(m);
+							if(!timeMatch && block.HtmlPath.equals(mostPossibleTimePath))
+							{
+								Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d\\D+?\\d?\\d");
+								String timeContentString = htmlWrapper.extractBlockText(block);
+								Matcher timeMatcher = timePattern.matcher(timeContentString);
+								if(timeMatcher.find())
+								{
+									String timeString =  timeMatcher.group();
+									Pattern intPattern = Pattern.compile("\\d{1,4}");
+									Matcher intMatcher = intPattern.matcher(timeString);
+									intMatcher.find();
+									int year = Integer.parseInt(intMatcher.group()) ;
+									intMatcher.find();
+									int month = Integer.parseInt(intMatcher.group()) ;
+									intMatcher.find();
+									int day = Integer.parseInt(intMatcher.group()) ;
+									intMatcher.find();
+									int hours = Integer.parseInt(intMatcher.group()) ;
+									intMatcher.find();
+									int minutes = Integer.parseInt(intMatcher.group()) ;
+									int sec = 0;
+									if(intMatcher.find())
+									{
+										sec = Integer.parseInt(intMatcher.group());
+									}
+									record.timeHtmlPathString = block.HtmlPath;
+									record.NewsTime = new GregorianCalendar(year, month, day, hours,minutes, sec);
+									timeIndex = m;
+									break;
+								}
 							}
-							
 						}
-						if(!titleMatch && block.HtmlPath.equals(mostPossibleTitlePath))
-						{
-							record.titleHtmlPathString = mostPossibleTitlePath;
-							record.NewsTitle = htmlWrapper.extractBlockText(block);
-							continue;
-						}
-						
-						if(!timeMatch && block.HtmlPath.equals(mostPossibleTimePath))
-						{
+					}
+					else
+					{
+						for (int m = bodyIndex - 1;m >= 0; m--) {
+							Block block = htmlWrapper.getBlock(m);
 							Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d\\D+?\\d?\\d");
 							String timeContentString = htmlWrapper.extractBlockText(block);
 							Matcher timeMatcher = timePattern.matcher(timeContentString);
 							if(timeMatcher.find())
 							{
-								String timeString =  timeMatcher.group();
-								Pattern intPattern = Pattern.compile("\\d{1,4}");
-								Matcher intMatcher = intPattern.matcher(timeString);
-								intMatcher.find();
-								int year = Integer.parseInt(intMatcher.group()) ;
-								intMatcher.find();
-								int month = Integer.parseInt(intMatcher.group()) ;
-								intMatcher.find();
-								int day = Integer.parseInt(intMatcher.group()) ;
-								intMatcher.find();
-								int hours = Integer.parseInt(intMatcher.group()) ;
-								intMatcher.find();
-								int minutes = Integer.parseInt(intMatcher.group()) ;
-								int sec = 0;
-								if(intMatcher.find())
-								{
-									sec = Integer.parseInt(intMatcher.group());
-								}
-								record.timeHtmlPathString = block.HtmlPath;
-								record.NewsTime = new GregorianCalendar(year, month - 1, day, hours,minutes, sec);
+								 timeIndex = m;
+								 break;
 							}
+						}
+					}
+					for(int n = timeIndex - 1; n >= 0; n--) {
+						Block block = htmlWrapper.getBlock(n);
+						if(!titleMatch && block.HtmlPath.equals(mostPossibleTitlePath))
+						{
+							record.titleHtmlPathString = mostPossibleTitlePath;
+							record.NewsTitle = htmlWrapper.extractBlockText(block);
+							break;
 						}
 					}
 				} catch (FileNotFoundException e) {

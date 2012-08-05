@@ -1,19 +1,44 @@
 package test.basic;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+
 public class UrlPattern 
 {
+	public final static class UrlMapPath
+	{
+		public String Url;
+		public String Path;
+		public UrlMapPath(String url,String path)
+		{
+			Url = url;
+			Path = path;
+		}
+	}
 	private String mHostUrl;
-	private String mRelativeRegex;
-	public UrlPattern(String host,String regex)
+	private String[] mRelativeRegex;
+	private String mPhysicalPath;
+	private Vector<UrlMapPath> mUrlMapPathList;
+	public UrlPattern(String host,String[] regex)
 	{
 		mHostUrl = host;
 		mRelativeRegex = regex;
+		mUrlMapPathList = new Vector<UrlMapPath>();
+	}
+	public void addUrlMapPath(UrlMapPath targetMapPath)
+	{
+		mUrlMapPathList.add(targetMapPath);
+	}
+	public Iterator<UrlMapPath> getUrlMapPathElements()
+	{
+		return mUrlMapPathList.iterator();
 	}
 	public String getHostUrl()
 	{
 		return mHostUrl;
 	}
-	public String getRelativeRegex()
+	public String[] getRelativeRegexes()
 	{
 		return mRelativeRegex;
 	}
@@ -21,7 +46,7 @@ public class UrlPattern
 	{
 		mHostUrl = str;
 	}
-	public void setRelativeRegex(String str)
+	public void setRelativeRegex(String[] str)
 	{
 		mRelativeRegex = str;
 	}
