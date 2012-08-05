@@ -163,6 +163,16 @@ public class HtmlArchive
 					}
 				}
 				htmlWrapper.InitializeBlockList();
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("C:\\Users\\firstprayer\\Desktop\\新建文件夹\\4\\k.txt"),"utf-8"));
+				for (int j = 0; j < htmlWrapper.getBlockNumber(); j++) {
+					writer.write("Block " + j + ":" + htmlWrapper.getBlock(j).ImportanceFactor);
+					writer.newLine();
+					writer.write(htmlWrapper.getBlock(j).HtmlPath);
+					writer.newLine();
+					writer.write(htmlWrapper.extractBlockText(htmlWrapper.getBlock(j)));
+					writer.newLine();
+				}
+				writer.close();
 				NewsRecord resultNewsRecord = htmlWrapper.Manipulate();
 				if(resultNewsRecord != null)
 				{
@@ -320,33 +330,36 @@ public class HtmlArchive
 					int lastImportantFactor = 0;
 					int originBodyIndex = -1, bodyIndex = -1, updateBodyIndex = -1;
 					int originTimeIndex = -1, timeIndex = -1, updateTimeIndex = -1;
+					int originalMostImportantFactor = 0;
 					for (int j = 0; j < htmlWrapper.getBlockNumber(); j++) {
 						Block block = htmlWrapper.getBlock(j);
-						if(!contentMatch && block.HtmlPath.equals(mostPossibleContentPath))
-						{
-							if(block.ImportanceFactor > lastImportantFactor)
+						
+							if(!contentMatch && block.HtmlPath.equals(mostPossibleContentPath))
 							{
-								record.contentHtmlPathString = mostPossibleContentPath;
-								record.NewsContent = htmlWrapper.extractBlockText(block);
-								lastImportantFactor = block.ImportanceFactor;
-								updateBodyIndex = j;
-							}		
-						}	
-						if(block.ImportanceFactor > lastImportantFactor)
+								if(block.ImportanceFactor > lastImportantFactor)
+								{
+
+									lastImportantFactor = block.ImportanceFactor;
+									bodyIndex = j;
+								}	
+							}
+						if(block.ImportanceFactor > originalMostImportantFactor)
 						{
-							lastImportantFactor = block.ImportanceFactor;
+							originalMostImportantFactor = block.ImportanceFactor;
 							originBodyIndex = j;
 						}
 					}
-					if(updateBodyIndex < 0)
+					if(bodyIndex == -1)
 					{
 						bodyIndex = originBodyIndex;
+						record.contentHtmlPathString = htmlWrapper.getBlock(bodyIndex).HtmlPath;
+						record.NewsContent = htmlWrapper.extractBlockText(htmlWrapper.getBlock(bodyIndex));
 					}
-					else
+					else if(!contentMatch)
 					{
-						bodyIndex = updateBodyIndex;
+						record.contentHtmlPathString = mostPossibleContentPath;
+						record.NewsContent = htmlWrapper.extractBlockText(htmlWrapper.getBlock(bodyIndex));
 					}
-					
 					timeIndex = htmlWrapper.getBlock(bodyIndex).StartIndex;
 					for (int m = timeIndex - 1;m >= 0; m--) {
 						AdvanceTextNode node = htmlWrapper.getNode(m);
