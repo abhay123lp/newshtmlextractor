@@ -39,6 +39,37 @@ public class HtmlWrapper
 			TextNumber = tn;
 		}
 	}
+	public static GregorianCalendar extractTimeFromString(String timeString)
+	{
+		Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d\\D+?\\d?\\d");
+		Matcher timeMatcher = timePattern.matcher(timeString);
+		if(timeMatcher.find())
+		{
+			timeString = timeMatcher.group();
+			Pattern intPattern = Pattern.compile("\\d{1,4}");
+			Matcher intMatcher = intPattern.matcher(timeString);
+			intMatcher.find();
+			int year = Integer.parseInt(intMatcher.group()) ;
+			intMatcher.find();
+			int month = Integer.parseInt(intMatcher.group()) ;
+			intMatcher.find();
+			int day = Integer.parseInt(intMatcher.group()) ;
+			intMatcher.find();
+			int hours = Integer.parseInt(intMatcher.group()) ;
+			intMatcher.find();
+			int minutes = Integer.parseInt(intMatcher.group()) ;
+			int sec = 0;
+			if(intMatcher.find())
+			{
+				sec = Integer.parseInt(intMatcher.group());
+			}
+			return new GregorianCalendar(year, month, day, hours,minutes, sec);
+		}
+		else {
+			return null;
+		}
+	
+	}
 	private String extractTagNodeText(TagNode node)
 	{
 		String resultString = "";
