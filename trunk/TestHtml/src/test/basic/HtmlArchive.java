@@ -363,6 +363,8 @@ public class HtmlArchive
 					timeIndex = htmlWrapper.getBlock(bodyIndex).StartIndex;
 					for (int m = timeIndex - 1;m >= 0; m--) {
 						AdvanceTextNode node = htmlWrapper.getNode(m);
+						if(node.getWithinHref())
+							continue;
 						if(timeMatch)
 						{
 							GregorianCalendar timeCalendar = HtmlWrapper.extractTimeFromString(node.getText());
@@ -389,6 +391,8 @@ public class HtmlArchive
 					
 					for(int n = timeIndex - 1; n >= 0; n--) {
 						AdvanceTextNode titleTextNode = htmlWrapper.getNode(n);
+						if(titleTextNode.getWithinHref())
+							continue;
 						if(!titleMatch && titleTextNode.exactHtmlPath.equals(mostPossibleTitlePath))
 						{
 							record.titleHtmlPathString = mostPossibleTitlePath;

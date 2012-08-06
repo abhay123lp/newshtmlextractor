@@ -63,7 +63,7 @@ public class HtmlWrapper
 			{
 				sec = Integer.parseInt(intMatcher.group());
 			}
-			return new GregorianCalendar(year, month, day, hours,minutes, sec);
+			return new GregorianCalendar(year, month - 1, day, hours,minutes, sec);
 		}
 		else {
 			return null;
@@ -254,6 +254,8 @@ public class HtmlWrapper
 		Matcher timeMatcher = null;
 		for (int i = block.StartIndex; i >= 0; i--) {
 			tempAdvanceTextNode = mTextNodes.get(i);
+			if(tempAdvanceTextNode.getWithinHref())
+				continue;
 			timeMatcher = timePattern.matcher(tempAdvanceTextNode.getText());
 			if(timeMatcher.find())
 			{
@@ -291,6 +293,8 @@ public class HtmlWrapper
 		Matcher titleMatcher = null;
 		for (int i = timeIndex - 1; i >= 0; i--) {
 			tempAdvanceTextNode = mTextNodes.get(i);
+			if(tempAdvanceTextNode.getWithinHref())
+				continue;
 			titleMatcher = titlePattern.matcher(tempAdvanceTextNode.getText());
 			if(titleMatcher.find())
 			{
