@@ -93,10 +93,14 @@ public class HtmlManager
 	public void ProcessAll()
 	{
 		for (int i = 0; i < mHtmlArchives.size(); i++) {
-			mHtmlArchives.get(i).CollectFile();
-			mHtmlArchives.get(i).ExtractRecord();
-			mHtmlArchives.get(i).UpdateRecord();
-			mHtmlArchives.get(i).saveRecord();
+			HtmlArchive archive = mHtmlArchives.get(i);
+			archive.CollectFile();
+			archive.Initialize();
+			archive.ruleOutUselessText();
+			archive.ExtractRecord();
+			archive.UpdateRecord();
+			archive.saveRecord();
+			archive.ReleaseUselessSpace();
 		}
 		
 	}
