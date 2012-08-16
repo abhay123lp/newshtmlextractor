@@ -3,6 +3,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -144,9 +145,21 @@ public class HtmlWrapper
 	{
 		return mTextNodes.get(index);
 	}
+	public Iterator<AdvanceTextNode> getTextNodeElement()
+	{
+		return mTextNodes.iterator();
+	}
+	public Iterator<Block> getBlockElement()
+	{
+		return mBlockList.iterator();
+	}
 	public int getNodeNumber()
 	{
 		return mTextNodes.size();
+	}
+	public void deleteTextNode(int index)
+	{
+		mTextNodes.removeElementAt(index);
 	}
 	public void addBlock(Block b)
 	{
@@ -155,6 +168,10 @@ public class HtmlWrapper
 	public Block getBlock(int index)
 	{
 		return mBlockList.get(index);
+	}
+	public void deleteBlock(int index)
+	{
+		mBlockList.removeElementAt(index);
 	}
 	public int getBlockNumber()
 	{
@@ -240,19 +257,19 @@ public class HtmlWrapper
 		if(indexOfMostPossibleBlock == -1)
 			return null;
 		NewsRecord resultNewsRecord = new NewsRecord();
-		Block block = mBlockList.get(indexOfMostPossibleBlock);
+		Block contentBlock = mBlockList.get(indexOfMostPossibleBlock);
 		//for content,we simply concat all the text within the block
 		String contentString = "";
-		contentString = this.extractBlockText(block);
+		contentString = this.extractBlockText(contentBlock);
 		resultNewsRecord.NewsContent = contentString;
-		resultNewsRecord.contentHtmlPathString = block.HtmlPath;
+		resultNewsRecord.contentHtmlPathString = contentBlock.HtmlPath;
 		//for time, we use regex expression, and search all the text nodes before the content block
 		//also, we assume that the right time is the closest time before the content block.
 		AdvanceTextNode tempAdvanceTextNode, timeNode = null;
-		int timeIndex = block.StartIndex;
+		int timeIndex = contentBlock.StartIndex;
 		Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d\\D+?\\d?\\d");
 		Matcher timeMatcher = null;
-		for (int i = block.StartIndex; i >= 0; i--) {
+		for (int i = contentBlock.StartIndex; i >= 0; i--) {
 			tempAdvanceTextNode = mTextNodes.get(i);
 			if(tempAdvanceTextNode.getWithinHref())
 				continue;
@@ -288,7 +305,7 @@ public class HtmlWrapper
 			resultNewsRecord.NewsTime = new GregorianCalendar(year, month, day, hours,minutes, sec);
 			resultNewsRecord.timeHtmlPathString = timeNode.getHtmlPath();
 		}
-		AdvanceTextNode titleTextNode = null;
+		AdvanceTextNode titleTextNode = null;int titleIndex = -1;
 		Pattern titlePattern = Pattern.compile("[\u4E00-\u9FA5]{2,}.*?[\u4E00-\u9FA5]{2,}");
 		Matcher titleMatcher = null;
 		for (int i = timeIndex - 1; i >= 0; i--) {
@@ -298,6 +315,7 @@ public class HtmlWrapper
 			titleMatcher = titlePattern.matcher(tempAdvanceTextNode.getText());
 			if(titleMatcher.find())
 			{
+				titleIndex = i;
 				titleTextNode = tempAdvanceTextNode;
 				break;
 			}
@@ -307,6 +325,55 @@ public class HtmlWrapper
 		else {
 			resultNewsRecord.titleHtmlPathString = titleTextNode.getExactHtmlPath();
 			resultNewsRecord.NewsTitle = titleTextNode.getText();
+		}
+		
+		//Now for source,we search text nodes between content and title
+		//and match the first one
+		resultNewsRecord.NewsSource = null;
+		Pattern sourcePattern = Pattern.compile("来[源于自]于?[:：]");
+		for (int i = titleIndex + 1; i < contentBlock.StartIndex; i++) {
+			tempAdvanceTextNode = mTextNodes.get(i);
+			String tempString = tempAdvanceTextNode.getText();
+			Matcher sourceMatcher = sourcePattern.matcher(tempString);
+			if(sourceMatcher.find())
+			{
+				int e = sourceMatcher.end();
+				if(tempString.length() - e > 3)//something behind
+				{
+					String subString = tempString.substring(e + 1);
+					Pattern chinesePattern = Pattern.compile("[\u4E00-\u9FA5]");
+					Matcher chineseMatcher = chinesePattern.matcher(subString);
+					if(chineseMatcher.find())
+					{
+						int sourceend;
+						for (sourceend = 0; sourceend < subString.length();sourceend++) {
+							//System.out.print((int)subString.charAt(sourceend));
+							if(subString.charAt(sourceend) == ' ' || (int)subString.charAt(sourceend) == 12288)
+							{
+								break;
+							}
+								
+						}
+						
+						String sourceString = subString.substring(0,sourceend);
+						resultNewsRecord.NewsSource = sourceString.trim();
+						resultNewsRecord.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();
+					}
+				}
+				else //maybe in the next node
+				{
+					if(i < contentBlock.StartIndex - 1)
+					{
+						tempAdvanceTextNode = mTextNodes.get(i + 1);
+						//if(tempAdvanceTextNode.getWithinHref())
+						//{
+							resultNewsRecord.NewsSource = tempAdvanceTextNode.getText();
+							resultNewsRecord.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();
+						//}
+					}
+				}
+				
+			}
 		}
 		return resultNewsRecord;
 				/*

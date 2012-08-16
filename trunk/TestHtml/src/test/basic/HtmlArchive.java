@@ -13,8 +13,15 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.GregorianCalendar;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 import java.util.jar.JarException;
 import java.util.regex.Matcher;
@@ -41,6 +48,11 @@ public class HtmlArchive
 	private File mDirectory;
 	private Vector<String> mFilenameList = new Vector<String>();
 	private Vector<NewsRecord> mRecordList = new Vector<NewsRecord>();
+	private Vector<HtmlWrapper> mWrapperList = new Vector<HtmlWrapper>();
+	public void ReleaseUselessSpace()
+	{
+		mWrapperList.clear();
+	}
 	private String getHtmlContentSafely(String htmlPath) throws IOException
 	{
 		InputStreamReader inputStreamReader = new InputStreamReader
@@ -132,12 +144,12 @@ public class HtmlArchive
 		}
 		return true;
 	}
-	public void ExtractRecord()
+	public void Initialize()
 	{
-		HtmlWrapper htmlWrapper = new HtmlWrapper();
 		for (int i = 0; i < mFilenameList.size(); i++) 
 		{
 			try {
+				HtmlWrapper htmlWrapper = new HtmlWrapper();
 				String text = getHtmlContentSafely(mFilenameList.get(i));
 				text = HtmlManipulator.RuleOutUselessText(text);
 				
@@ -148,8 +160,6 @@ public class HtmlArchive
 				NodeList nodeList = parser.extractAllNodesThatMatch(new MyNodeFilter());
 				Node[] nodes = nodeList.toNodeArray();
 				//clear the wrapper to new nodes to be added into and processed
-				htmlWrapper.clear();
-				Vector<AdvanceTextNode> ruledOutHrefTextNodes = new Vector<AdvanceTextNode>();
 				for (int j = 0; j < nodes.length; j++) 
 				{
 					if(nodes[j] instanceof TextNode)
@@ -162,17 +172,104 @@ public class HtmlArchive
 						//}
 					}
 				}
-				htmlWrapper.InitializeBlockList();
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("C:\\Users\\firstprayer\\Desktop\\新建文件夹\\4\\k.txt"),"utf-8"));
-				for (int j = 0; j < htmlWrapper.getBlockNumber(); j++) {
-					writer.write("Block " + j + ":" + htmlWrapper.getBlock(j).ImportanceFactor);
-					writer.newLine();
-					writer.write(htmlWrapper.getBlock(j).HtmlPath);
-					writer.newLine();
-					writer.write(htmlWrapper.extractBlockText(htmlWrapper.getBlock(j)));
-					writer.newLine();
+				this.mWrapperList.add(htmlWrapper);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ParserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	public void ruleOutUselessText()
+	{
+		final class TextRecord
+		{
+			public int wrapperIndex;
+			public int nodeIndex;
+			public TextRecord(int w,int n)
+			{
+				wrapperIndex = w;
+				nodeIndex = n;
+			}
+		}
+		Hashtable<String,Vector<TextRecord>> stringHash = new Hashtable<String,Vector<TextRecord>>();
+		
+		for (int i = 0; i < mWrapperList.size(); i++) {
+			HtmlWrapper htmlWrapper = mWrapperList.get(i);
+			for (int j = 0; j < htmlWrapper.getNodeNumber(); j++) {
+				AdvanceTextNode node = htmlWrapper.getNode(j);
+				String text = node.getText();
+				Vector<TextRecord> record = stringHash.get(text);
+				if(record != null)
+				{
+					record.add(new TextRecord(i, j));
 				}
-				writer.close();
+				else {
+					Vector<TextRecord> vector = new Vector<>();
+					vector.add(new TextRecord(i, j));
+					stringHash.put(text, vector);
+				}
+			}
+		}
+		Vector<TextRecord> theRecordToBeRuleOutVector = new Vector<>();
+		float leastRatio = 0.8f;
+		int totalNumber = mWrapperList.size();
+		Enumeration enumeration = stringHash.elements();
+		while(enumeration.hasMoreElements())
+		{
+			Vector<TextRecord> records = (Vector<TextRecord>) enumeration.nextElement();
+			if((float)records.size() / totalNumber > leastRatio)
+			{
+				
+				theRecordToBeRuleOutVector.addAll(records);
+			}
+		}
+		Collections.sort(theRecordToBeRuleOutVector,new Comparator<TextRecord>() {
+
+			
+			@Override
+			public int compare(TextRecord o1, TextRecord o2) {
+				// TODO Auto-generated method stub
+				
+				if(o1.wrapperIndex != o2.wrapperIndex)
+					return o2.wrapperIndex - o1.wrapperIndex;//descending order
+				if(o1.nodeIndex != o2.nodeIndex)
+					return o2.nodeIndex - o1.nodeIndex;
+				return 0;
+			}
+			
+		});
+			Iterator<TextRecord> recordIterator = theRecordToBeRuleOutVector.iterator();
+			while(recordIterator.hasNext())
+			{
+				TextRecord record = recordIterator.next();
+				try {
+					mWrapperList.get(record.wrapperIndex).deleteTextNode(record.nodeIndex);
+				} catch (Exception e) {
+					// TODO: handle exception
+					e.printStackTrace();
+				}
+				
+			}
+	}
+	public void ExtractRecord()
+	{
+		
+		for (int i = 0; i < mWrapperList.size(); i++) 
+		{
+			try{
+				HtmlWrapper htmlWrapper = mWrapperList.get(i);
+				htmlWrapper.InitializeBlockList();
+				
 				NewsRecord resultNewsRecord = htmlWrapper.Manipulate();
 				if(resultNewsRecord != null)
 				{
@@ -445,6 +542,8 @@ public class HtmlArchive
 				writer.write("Title:" + resultNewsRecord.NewsTitle + "(" + resultNewsRecord.titleHtmlPathString + ")");
 				writer.newLine();
 				writer.write("Time:" +  timeString +  "(" + resultNewsRecord.timeHtmlPathString + ")");
+				writer.newLine();
+				writer.write("Source:" + resultNewsRecord.NewsSource + "(" + resultNewsRecord.sourceHtmlPathString + ")");
 				writer.newLine();
 				writer.write("Content:" + resultNewsRecord.NewsContent + "(" + resultNewsRecord.contentHtmlPathString + ")");
 				writer.newLine();
