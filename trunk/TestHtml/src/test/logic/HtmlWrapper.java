@@ -19,6 +19,7 @@ import org.htmlparser.util.SimpleNodeIterator;
 
 import test.basic.AdvanceTextNode;
 import test.basic.NewsRecord;
+import test.classifier.SourceIdentifier;
 
 public class HtmlWrapper 
 {
@@ -373,6 +374,29 @@ public class HtmlWrapper
 					}
 				}
 				
+			}
+		}
+		if(resultNewsRecord.NewsSource == null) // haven't found any specifier word
+		{
+			
+			boolean found = false;
+			for (int i = titleIndex + 1; i < contentBlock.StartIndex; i++) 
+			{
+				tempAdvanceTextNode = mTextNodes.get(i);
+				String tempString = tempAdvanceTextNode.getText();
+				String[] splitedStrings = tempString.split("[\\s ]+");
+				for (int j = 0; j < splitedStrings.length; j++) 
+				{
+					tempString = splitedStrings[j];
+					if(found = SourceIdentifier.isSourceString(tempString))
+					{
+						resultNewsRecord.NewsSource = tempString;
+						resultNewsRecord.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();//HtmlPath();
+						break;
+					}
+				}
+				if(found)
+					break;
 			}
 		}
 		return resultNewsRecord;
