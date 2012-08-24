@@ -35,6 +35,7 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.omg.CORBA.PRIVATE_MEMBER;
 
+import test.classifier.SourceIdentifier;
 import test.logic.HtmlManipulator;
 import test.logic.HtmlWrapper;
 import test.logic.HtmlWrapper.Block;
@@ -172,6 +173,7 @@ public class HtmlArchive
 						//}
 					}
 				}
+				
 				this.mWrapperList.add(htmlWrapper);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -201,6 +203,8 @@ public class HtmlArchive
 				nodeIndex = n;
 			}
 		}
+		if(this.mWrapperList.size() < 10) // too few htmls
+			return;
 		Hashtable<String,Vector<TextRecord>> stringHash = new Hashtable<String,Vector<TextRecord>>();
 		
 		for (int i = 0; i < mWrapperList.size(); i++) {
@@ -308,6 +312,7 @@ public class HtmlArchive
 		Vector<PathPossibility> titlePathAccumulator = new Vector<PathPossibility>();
 		Vector<PathPossibility> timePathAccumulator = new Vector<PathPossibility>();
 		Vector<PathPossibility> contentPathAccumulator = new Vector<PathPossibility>();
+		Vector<PathPossibility> sourcePathAccumulator = new Vector<PathPossibility>();
 		for (int i = 0; i < mRecordList.size(); i++)
 		{
 			NewsRecord record = mRecordList.get(i);
@@ -359,12 +364,27 @@ public class HtmlArchive
 				if(record.contentHtmlPathString != null)
 				contentPathAccumulator.add(new PathPossibility(record.contentHtmlPathString));
 			}
-			
+			found = false;
+			for (int j = 0; j < sourcePathAccumulator.size(); j++) {
+				PathPossibility ppPathPossibility = sourcePathAccumulator.get(j);
+				if(ppPathPossibility.pathString.equals(record.contentHtmlPathString))
+				{
+					found = true;
+					ppPathPossibility.corresponseCount++;
+					break;
+				}
+			}
+			if(!found)
+			{
+				if(record.contentHtmlPathString != null)
+					sourcePathAccumulator.add(new PathPossibility(record.contentHtmlPathString));
+			}
 		}
 		//then we figure out which path should most possibly be the right one
 		String mostPossibleTitlePath = null;
 		String mostPossibleTimePath = null;
 		String mostPossibleContentPath = null;
+		String mostPossibleSourcePath = null;
 		int mostNum;
 		mostNum = 0;
 		for (int j = 0; j < titlePathAccumulator.size(); j++) {
@@ -372,6 +392,15 @@ public class HtmlArchive
 			{
 				mostNum = titlePathAccumulator.get(j).corresponseCount;
 				mostPossibleTitlePath = titlePathAccumulator.get(j).pathString;
+			}
+		}
+		
+		mostNum = 0;
+		for (int j = 0; j < sourcePathAccumulator.size(); j++) {
+			if(sourcePathAccumulator.get(j).corresponseCount > mostNum)
+			{
+				mostNum = sourcePathAccumulator.get(j).corresponseCount;
+				mostPossibleSourcePath = sourcePathAccumulator.get(j).pathString;
 			}
 		}
 		
@@ -399,7 +428,8 @@ public class HtmlArchive
 			boolean contentMatch = (record.contentHtmlPathString == null)?false:record.contentHtmlPathString.equals(mostPossibleContentPath);
 			boolean titleMatch = (record.titleHtmlPathString == null)?false:record.titleHtmlPathString.equals(mostPossibleTitlePath);
 			boolean timeMatch = (record.timeHtmlPathString == null)?false:record.timeHtmlPathString.equals(mostPossibleTimePath);
-			if(!contentMatch || !timeMatch || !titleMatch)
+			boolean sourceMatch = record.sourceHtmlPathString == null?false:record.sourceHtmlPathString.equals(mostPossibleSourcePath);
+			if(!contentMatch || !timeMatch || !titleMatch || !sourceMatch)
 			{
 				//Ok,we need to update it now
 				HtmlWrapper htmlWrapper = new HtmlWrapper();
@@ -486,6 +516,7 @@ public class HtmlArchive
 						}
 					}
 					
+					int titleIndex = -1;
 					for(int n = timeIndex - 1; n >= 0; n--) {
 						AdvanceTextNode titleTextNode = htmlWrapper.getNode(n);
 						if(titleTextNode.getWithinHref())
@@ -494,7 +525,88 @@ public class HtmlArchive
 						{
 							record.titleHtmlPathString = mostPossibleTitlePath;
 							record.NewsTitle = titleTextNode.getText();
+							timeIndex = n;
 							break;
+						}
+					}
+					
+					if(!sourceMatch)
+					{
+						AdvanceTextNode tempAdvanceTextNode = null;
+						Pattern sourcePattern = Pattern.compile("来[源于自]于?[:：]");
+						boolean found = false;
+						int endlimit = htmlWrapper.getBlock(bodyIndex).StartIndex; //the limitation of the range of searching source
+						for (int i1 = endlimit - 1; i1 > titleIndex; i1--) {
+							tempAdvanceTextNode = htmlWrapper.getNode(i1);
+							String tempString = tempAdvanceTextNode.getText();
+							Matcher sourceMatcher = sourcePattern.matcher(tempString);
+							if(sourceMatcher.find())
+							{
+								int e = sourceMatcher.end();
+								if(tempString.length() - e > 3)//something behind
+								{
+									String subString = tempString.substring(e + 1);
+									Pattern chinesePattern = Pattern.compile("[\u4E00-\u9FA5]");
+									Matcher chineseMatcher = chinesePattern.matcher(subString);
+									if(chineseMatcher.find())
+									{
+										int sourceend;
+										for (sourceend = 0; sourceend < subString.length();sourceend++) {
+											//System.out.print((int)subString.charAt(sourceend));
+											if(subString.charAt(sourceend) == ' ' || (int)subString.charAt(sourceend) == 12288)
+											{
+												break;
+											}
+												
+										}
+										
+										String sourceString = subString.substring(0,sourceend);
+										found = true;
+										record.NewsSource = sourceString.trim();
+										record.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();
+										if(record.sourceHtmlPathString.equals(mostPossibleSourcePath))
+											break;
+									}
+								}
+								else //maybe in the next node
+								{
+									if(i1 < endlimit - 1)
+									{
+										tempAdvanceTextNode = htmlWrapper.getNode(i1 + 1);
+										//if(tempAdvanceTextNode.getWithinHref())
+										//{
+										found = true;
+										record.NewsSource = tempAdvanceTextNode.getText();
+										record.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();
+										if(record.sourceHtmlPathString.equals(mostPossibleSourcePath))
+											break;
+										//}
+									}
+								}
+								
+							}
+						}
+						if(!found) // haven't found any specifier word
+						{
+							for (int i1 = endlimit - 1; i1 > titleIndex; i1--) 
+							{
+								tempAdvanceTextNode = htmlWrapper.getNode(i1);
+								String tempString = tempAdvanceTextNode.getText();
+								String[] splitedStrings = tempString.split("[\\s ]+");
+								for (int j = 0; j < splitedStrings.length; j++) 
+								{
+									tempString = splitedStrings[j];
+									if(found = SourceIdentifier.isSourceString(tempString))
+									{
+										record.NewsSource = tempString;
+										record.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();// HtmlPath();
+										if(record.sourceHtmlPathString.equals(mostPossibleSourcePath))
+											break;
+									}
+								}
+								if(found)
+									break;
+							}
 						}
 					}
 					
