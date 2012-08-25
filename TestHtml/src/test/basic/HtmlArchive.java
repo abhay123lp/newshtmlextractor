@@ -521,12 +521,23 @@ public class HtmlArchive
 						AdvanceTextNode titleTextNode = htmlWrapper.getNode(n);
 						if(titleTextNode.getWithinHref())
 							continue;
-						if(!titleMatch && titleTextNode.exactHtmlPath.equals(mostPossibleTitlePath))
+						if(!titleMatch)
 						{
-							record.titleHtmlPathString = mostPossibleTitlePath;
-							record.NewsTitle = titleTextNode.getText();
-							timeIndex = n;
-							break;
+							if(titleTextNode.exactHtmlPath.equals(mostPossibleTitlePath))
+							{
+								record.titleHtmlPathString = mostPossibleTitlePath;
+								record.NewsTitle = titleTextNode.getText();
+								titleIndex = n;
+								break;
+							}
+							
+						}
+						else {
+							if(titleTextNode.getText().equals(record.NewsTitle))
+							{
+								titleIndex = n;
+								break;
+							}
 						}
 					}
 					

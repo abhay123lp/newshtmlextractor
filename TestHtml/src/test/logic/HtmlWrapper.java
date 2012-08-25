@@ -47,9 +47,10 @@ public class HtmlWrapper
 		Matcher timeMatcher = timePattern.matcher(timeString);
 		if(timeMatcher.find())
 		{
-			timeString = timeMatcher.group();
+			String tempString = timeMatcher.group();
+			int e = timeMatcher.end();
 			Pattern intPattern = Pattern.compile("\\d{1,4}");
-			Matcher intMatcher = intPattern.matcher(timeString);
+			Matcher intMatcher = intPattern.matcher(tempString);
 			intMatcher.find();
 			int year = Integer.parseInt(intMatcher.group()) ;
 			intMatcher.find();
@@ -60,7 +61,11 @@ public class HtmlWrapper
 			int hours = Integer.parseInt(intMatcher.group()) ;
 			intMatcher.find();
 			int minutes = Integer.parseInt(intMatcher.group()) ;
+
+
 			int sec = 0;
+			tempString = timeString.substring(e);
+			intMatcher = intPattern.matcher(tempString);
 			if(intMatcher.find())
 			{
 				sec = Integer.parseInt(intMatcher.group());
@@ -285,25 +290,8 @@ public class HtmlWrapper
 		if(timeNode == null || timeMatcher == null)
 			resultNewsRecord.NewsTime = null;
 		else {
-			String timeString =  timeMatcher.group();
-			Pattern intPattern = Pattern.compile("\\d{1,4}");
-			Matcher intMatcher = intPattern.matcher(timeString);
-			intMatcher.find();
-			int year = Integer.parseInt(intMatcher.group()) ;
-			intMatcher.find();
-			int month = Integer.parseInt(intMatcher.group()) ;
-			intMatcher.find();
-			int day = Integer.parseInt(intMatcher.group()) ;
-			intMatcher.find();
-			int hours = Integer.parseInt(intMatcher.group()) ;
-			intMatcher.find();
-			int minutes = Integer.parseInt(intMatcher.group()) ;
-			int sec = 0;
-			if(intMatcher.find())
-			{
-				sec = Integer.parseInt(intMatcher.group());
-			}
-			resultNewsRecord.NewsTime = new GregorianCalendar(year, month, day, hours,minutes, sec);
+			//String timeString =  timeMatcher.group();
+			resultNewsRecord.NewsTime = extractTimeFromString(timeNode.getText());
 			resultNewsRecord.timeHtmlPathString = timeNode.getHtmlPath();
 		}
 		AdvanceTextNode titleTextNode = null;int titleIndex = -1;
@@ -384,7 +372,7 @@ public class HtmlWrapper
 			{
 				tempAdvanceTextNode = mTextNodes.get(i);
 				String tempString = tempAdvanceTextNode.getText();
-				String[] splitedStrings = tempString.split("[\\s ]+");
+				String[] splitedStrings = tempString.split("[\\s\u3000]+");
 				for (int j = 0; j < splitedStrings.length; j++) 
 				{
 					tempString = splitedStrings[j];
@@ -400,64 +388,7 @@ public class HtmlWrapper
 			}
 		}
 		return resultNewsRecord;
-				/*
-		//for title,we search all the text nodes before the content block
-		//and assume the title is inside the h1-h7 tag which is cloest to the content block
-		AdvanceTextNode tempAdvanceTextNode,titleTextNode = null;int titleTextIndex = -1;
-		Pattern titlePattern = Pattern.compile("/h[1-7]/$",Pattern.CASE_INSENSITIVE);
-		for (int i = 0; i < block.StartIndex; i++) {
-			tempAdvanceTextNode = mTextNodes.get(i);
-			if(titlePattern.matcher(tempAdvanceTextNode.getHtmlPath()).find())
-			{
-				titleTextIndex = i;
-				titleTextNode = tempAdvanceTextNode;
-			}
-		}
-		if(titleTextNode == null)
-			resultNewsRecord.NewsTitle = null;
-		else {
-			resultNewsRecord.titleHtmlPathString = titleTextNode.getHtmlPath();
-			resultNewsRecord.NewsTitle = titleTextNode.getText();
-		}
-		//for time,we use regex expression,and assume that the time text will be within the title and the content
-		//what's different is that we assume the first node we find to be the correct one
-		Pattern timePattern = Pattern.compile("\\d{4}\\D+?[0,1]?\\d\\D+?[0-3]?\\d\\D+?\\d?\\d.*?$");
-		AdvanceTextNode timeNode = null;
-		Matcher timeMatcher = null;
-		for (int i = titleTextIndex + 1; i < block.StartIndex; i++) {
-			tempAdvanceTextNode = mTextNodes.get(i);
-			timeMatcher = timePattern.matcher(tempAdvanceTextNode.getText());
-			if(timeMatcher.find())
-			{
-				timeNode = tempAdvanceTextNode;
-				break;
-			}
-		}
-		if(timeNode == null || timeMatcher == null)
-			resultNewsRecord.NewsTime = null;
-		else {
-			String timeString =  timeMatcher.group();
-			Pattern intPattern = Pattern.compile("\\d{1,4}");
-			Matcher intMatcher = intPattern.matcher(timeString);
-			intMatcher.find();
-			int year = Integer.parseInt(intMatcher.group()) ;
-			intMatcher.find();
-			int month = Integer.parseInt(intMatcher.group()) ;
-			intMatcher.find();
-			int day = Integer.parseInt(intMatcher.group()) ;
-			intMatcher.find();
-			int hours = Integer.parseInt(intMatcher.group()) ;
-			intMatcher.find();
-			int minutes = Integer.parseInt(intMatcher.group()) ;
-			int sec = 0;
-			if(intMatcher.find())
-			{
-				sec = Integer.parseInt(intMatcher.group());
-			}
-			resultNewsRecord.NewsTime = new GregorianCalendar(year,month - 1,day,hours,minutes,sec);// Date(year, month, day, hours,minutes, sec);
-			resultNewsRecord.timeHtmlPathString = timeNode.getHtmlPath();
-		}
-		return resultNewsRecord;*/
+		
 	}
 }
 
