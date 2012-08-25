@@ -98,7 +98,7 @@ public class HtmlManager
 			archive.Initialize();
 			archive.ruleOutUselessText();
 			archive.ExtractRecord();
-			archive.UpdateRecord();
+			//archive.UpdateRecord();
 			archive.saveRecord();
 			archive.ReleaseUselessSpace();
 		}
