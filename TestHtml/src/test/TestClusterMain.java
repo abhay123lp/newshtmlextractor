@@ -31,7 +31,6 @@ public class TestClusterMain {
 				String[] strings = text.split("::");
 				if(strings.length == 2)
 				{
-					//UrlPattern.UrlMapPath path = (new UrlPattern()).new UrlMapPath(strings[0], strings[1]);
 					mapList.add(new UrlPattern.UrlMapPath(strings[0],strings[1]));
 				}
 			}

@@ -39,7 +39,7 @@ import test.classifier.SourceIdentifier;
 import test.logic.HtmlManipulator;
 import test.logic.HtmlWrapper;
 import test.logic.HtmlWrapper.Block;
-import test.logic.MyNodeFilter;
+import text.filter.MyNodeFilter;
 
 
 public class HtmlArchive 
@@ -54,7 +54,7 @@ public class HtmlArchive
 	{
 		mWrapperList.clear();
 	}
-	private String getHtmlContentSafely(String htmlPath) throws IOException
+	public static String getHtmlContentSafely(String htmlPath) throws IOException
 	{
 		InputStreamReader inputStreamReader = new InputStreamReader
 				(
