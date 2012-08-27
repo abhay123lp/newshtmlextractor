@@ -85,6 +85,7 @@ public class HtmlManager
 		
 		return resultPatternList;
 	}
+
 	protected Vector<HtmlArchive> mHtmlArchives = new Vector<HtmlArchive>();
 	public void ProcessArchive(HtmlArchive archive)
 	{
@@ -92,7 +93,7 @@ public class HtmlManager
 	}
 	public void ProcessAll()
 	{
-		for (int i = 0; i < mHtmlArchives.size(); i++) {
+		for (int i = mHtmlArchives.size() - 1; i >= 0; i--) {
 			HtmlArchive archive = mHtmlArchives.get(i);
 			archive.CollectFile();
 			archive.Initialize();
@@ -101,6 +102,7 @@ public class HtmlManager
 			//archive.UpdateRecord();
 			archive.saveRecord();
 			archive.ReleaseUselessSpace();
+			mHtmlArchives.remove(i);
 		}
 		
 	}
