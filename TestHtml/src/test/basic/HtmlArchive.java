@@ -327,11 +327,11 @@ public class HtmlArchive
 	{
 		final class PathPossibility
 		{
-			public String pathString = null;
+			public HtmlPath path = null;
 			public int corresponseCount = 1;
-			public PathPossibility(String str)
+			public PathPossibility(HtmlPath str)
 			{
-				pathString = new String(str);
+				path = new HtmlPath(str);
 			}
 		}
 		//we store all the path within the news record,and record the number of each path
@@ -346,7 +346,7 @@ public class HtmlArchive
 			found = false;
 			for (int j = 0; j < titlePathAccumulator.size(); j++) {
 				PathPossibility ppPathPossibility = titlePathAccumulator.get(j);
-				if(ppPathPossibility.pathString.equals(record.titleHtmlPathString))
+				if(ppPathPossibility.path.isCompletelyEqualTo(record.titleHtmlPath))
 				{
 					found = true;
 					ppPathPossibility.corresponseCount++;
@@ -355,14 +355,14 @@ public class HtmlArchive
 			}
 			if(!found)
 			{
-				if(record.titleHtmlPathString != null)
-					titlePathAccumulator.add(new PathPossibility(record.titleHtmlPathString));
+				if(record.titleHtmlPath != null)
+					titlePathAccumulator.add(new PathPossibility(record.titleHtmlPath));
 			}
 			
 			found = false;
 			for (int j = 0; j < timePathAccumulator.size(); j++) {
 				PathPossibility ppPathPossibility = timePathAccumulator.get(j);
-				if(ppPathPossibility.pathString.equals(record.timeHtmlPathString))
+				if(ppPathPossibility.path.isCompletelyEqualTo(record.timeHtmlPath))
 				{
 					found = true;
 					ppPathPossibility.corresponseCount++;
@@ -371,14 +371,14 @@ public class HtmlArchive
 			}
 			if(!found)
 			{
-				if(record.timeHtmlPathString != null)
-				timePathAccumulator.add(new PathPossibility(record.timeHtmlPathString));
+				if(record.timeHtmlPath != null)
+				timePathAccumulator.add(new PathPossibility(record.timeHtmlPath));
 			}
 			
 			found = false;
 			for (int j = 0; j < contentPathAccumulator.size(); j++) {
 				PathPossibility ppPathPossibility = contentPathAccumulator.get(j);
-				if(ppPathPossibility.pathString.equals(record.contentHtmlPathString))
+				if(ppPathPossibility.path.isPartlyEqualTo(record.contentHtmlPath))
 				{
 					found = true;
 					ppPathPossibility.corresponseCount++;
@@ -387,13 +387,13 @@ public class HtmlArchive
 			}
 			if(!found)
 			{
-				if(record.contentHtmlPathString != null)
-				contentPathAccumulator.add(new PathPossibility(record.contentHtmlPathString));
+				if(record.contentHtmlPath != null)
+				contentPathAccumulator.add(new PathPossibility(record.contentHtmlPath));
 			}
 			found = false;
 			for (int j = 0; j < sourcePathAccumulator.size(); j++) {
 				PathPossibility ppPathPossibility = sourcePathAccumulator.get(j);
-				if(ppPathPossibility.pathString.equals(record.contentHtmlPathString))
+				if(ppPathPossibility.path.isCompletelyEqualTo(record.sourceHtmlPath))
 				{
 					found = true;
 					ppPathPossibility.corresponseCount++;
@@ -402,22 +402,22 @@ public class HtmlArchive
 			}
 			if(!found)
 			{
-				if(record.contentHtmlPathString != null)
-					sourcePathAccumulator.add(new PathPossibility(record.contentHtmlPathString));
+				if(record.sourceHtmlPath != null)
+					sourcePathAccumulator.add(new PathPossibility(record.sourceHtmlPath));
 			}
 		}
 		//then we figure out which path should most possibly be the right one
-		String mostPossibleTitlePath = null;
-		String mostPossibleTimePath = null;
-		String mostPossibleContentPath = null;
-		String mostPossibleSourcePath = null;
+		HtmlPath mostPossibleTitlePath = null;
+		HtmlPath mostPossibleTimePath = null;
+		HtmlPath mostPossibleContentPath = null;
+		HtmlPath mostPossibleSourcePath = null;
 		int mostNum;
 		mostNum = 0;
 		for (int j = 0; j < titlePathAccumulator.size(); j++) {
 			if(titlePathAccumulator.get(j).corresponseCount > mostNum)
 			{
 				mostNum = titlePathAccumulator.get(j).corresponseCount;
-				mostPossibleTitlePath = titlePathAccumulator.get(j).pathString;
+				mostPossibleTitlePath = titlePathAccumulator.get(j).path;
 			}
 		}
 		
@@ -426,7 +426,7 @@ public class HtmlArchive
 			if(sourcePathAccumulator.get(j).corresponseCount > mostNum)
 			{
 				mostNum = sourcePathAccumulator.get(j).corresponseCount;
-				mostPossibleSourcePath = sourcePathAccumulator.get(j).pathString;
+				mostPossibleSourcePath = sourcePathAccumulator.get(j).path;
 			}
 		}
 		
@@ -435,7 +435,7 @@ public class HtmlArchive
 			if(timePathAccumulator.get(j).corresponseCount > mostNum)
 			{
 				mostNum = timePathAccumulator.get(j).corresponseCount;
-				mostPossibleTimePath = timePathAccumulator.get(j).pathString;
+				mostPossibleTimePath = timePathAccumulator.get(j).path;
 			}
 		}
 		
@@ -444,17 +444,17 @@ public class HtmlArchive
 			if(contentPathAccumulator.get(j).corresponseCount > mostNum)
 			{
 				mostNum = contentPathAccumulator.get(j).corresponseCount;
-				mostPossibleContentPath = contentPathAccumulator.get(j).pathString;
+				mostPossibleContentPath = contentPathAccumulator.get(j).path;
 			}
 		}
 		
 		//after this ,we will check each record and see whether their path is right
 		for (int i = 0; i < mRecordList.size(); i++) {
 			NewsRecord record = mRecordList.get(i);
-			boolean contentMatch = (record.contentHtmlPathString == null)?false:record.contentHtmlPathString.equals(mostPossibleContentPath);
-			boolean titleMatch = (record.titleHtmlPathString == null)?false:record.titleHtmlPathString.equals(mostPossibleTitlePath);
-			boolean timeMatch = (record.timeHtmlPathString == null)?false:record.timeHtmlPathString.equals(mostPossibleTimePath);
-			boolean sourceMatch = record.sourceHtmlPathString == null?false:record.sourceHtmlPathString.equals(mostPossibleSourcePath);
+			boolean contentMatch = (record.contentHtmlPath == null)?false:record.contentHtmlPath.isPartlyEqualTo(mostPossibleContentPath);
+			boolean titleMatch = (record.titleHtmlPath == null)?false:record.titleHtmlPath.isCompletelyEqualTo(mostPossibleTitlePath);
+			boolean timeMatch = (record.timeHtmlPath == null)?false:record.timeHtmlPath.isCompletelyEqualTo(mostPossibleTimePath);
+			boolean sourceMatch = record.sourceHtmlPath == null?false:record.sourceHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath);
 			if(!contentMatch || !timeMatch || !titleMatch || !sourceMatch)
 			{
 				//Ok,we need to update it now
@@ -487,7 +487,7 @@ public class HtmlArchive
 					for (int j = 0; j < htmlWrapper.getBlockNumber(); j++) {
 						Block block = htmlWrapper.getBlock(j);
 						
-							if(!contentMatch && block.HtmlPath.equals(mostPossibleContentPath))
+							if(!contentMatch && block.mHtmlPath.isPartlyEqualTo(mostPossibleContentPath))
 							{
 								if(block.ImportanceFactor > lastImportantFactor)
 								{
@@ -505,12 +505,12 @@ public class HtmlArchive
 					if(bodyIndex == -1)
 					{
 						bodyIndex = originBodyIndex;
-						record.contentHtmlPathString = htmlWrapper.getBlock(bodyIndex).HtmlPath;
+						record.contentHtmlPath = htmlWrapper.getBlock(bodyIndex).mHtmlPath;
 						record.NewsContent = htmlWrapper.extractBlockText(htmlWrapper.getBlock(bodyIndex));
 					}
 					else if(!contentMatch)
 					{
-						record.contentHtmlPathString = mostPossibleContentPath;
+						record.contentHtmlPath = mostPossibleContentPath;
 						record.NewsContent = htmlWrapper.extractBlockText(htmlWrapper.getBlock(bodyIndex));
 					}
 					timeIndex = htmlWrapper.getBlock(bodyIndex).StartIndex;
@@ -528,14 +528,14 @@ public class HtmlArchive
 							}
 						}
 						else {
-							if(node.getHtmlPath().equals(mostPossibleTimePath))
+							if(node.mHtmlPath.isCompletelyEqualTo(mostPossibleTimePath))
 							{
 								GregorianCalendar timeCalendar = HtmlWrapper.extractTimeFromString(node.getText());
 								if(timeCalendar != null)
 								{
 									timeIndex = m;
 									record.NewsTime = timeCalendar;
-									record.timeHtmlPathString = mostPossibleTimePath;
+									record.timeHtmlPath = mostPossibleTimePath;
 									break;
 								}
 							}
@@ -549,9 +549,9 @@ public class HtmlArchive
 							continue;
 						if(!titleMatch)
 						{
-							if(titleTextNode.exactHtmlPath.equals(mostPossibleTitlePath))
+							if(titleTextNode.mHtmlPath.isCompletelyEqualTo(mostPossibleTitlePath))
 							{
-								record.titleHtmlPathString = mostPossibleTitlePath;
+								record.titleHtmlPath = mostPossibleTitlePath;
 								record.NewsTitle = titleTextNode.getText();
 								titleIndex = n;
 								break;
@@ -600,8 +600,8 @@ public class HtmlArchive
 										String sourceString = subString.substring(0,sourceend);
 										found = true;
 										record.NewsSource = sourceString.trim();
-										record.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();
-										if(record.sourceHtmlPathString.equals(mostPossibleSourcePath))
+										record.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
+										if(record.sourceHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath))
 											break;
 									}
 								}
@@ -614,8 +614,8 @@ public class HtmlArchive
 										//{
 										found = true;
 										record.NewsSource = tempAdvanceTextNode.getText();
-										record.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();
-										if(record.sourceHtmlPathString.equals(mostPossibleSourcePath))
+										record.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
+										if(record.sourceHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath))
 											break;
 										//}
 									}
@@ -636,8 +636,8 @@ public class HtmlArchive
 									if(found = SourceIdentifier.isSourceString(tempString))
 									{
 										record.NewsSource = tempString;
-										record.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();// HtmlPath();
-										if(record.sourceHtmlPathString.equals(mostPossibleSourcePath))
+										record.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;// HtmlPath();
+										if(record.sourceHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath))
 											break;
 									}
 								}
@@ -665,38 +665,45 @@ public class HtmlArchive
 	{
 		for (int i = 0; i < mRecordList.size(); i++) {
 			NewsRecord resultNewsRecord = mRecordList.get(i);
-			String pathString = mFilenameList.get(resultNewsRecord.Index) + ".txt";
-			try {
-				BufferedWriter writer = new BufferedWriter
-						(
-								new OutputStreamWriter
-								(
-								new FileOutputStream(pathString),
-								"utf-8"
-								)
-						);
-				//DateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-				//Date date = resultNewsRecord.NewsTime.getTime();
-				String timeString = resultNewsRecord.NewsTime == null?null:resultNewsRecord.NewsTime.getTime().getYear() + 1900
-						+ "-"
-						+ (resultNewsRecord.NewsTime.getTime().getMonth() + 1)
-						+ "-"
-						+ resultNewsRecord.NewsTime.getTime().getDate()
-						+ " "
-						+ resultNewsRecord.NewsTime.getTime().getHours()
-						+ ":"
-						+ resultNewsRecord.NewsTime.getTime().getMinutes()
-						+ ":"
-						+ resultNewsRecord.NewsTime.getTime().getSeconds();
-				writer.write("Title:" + resultNewsRecord.NewsTitle + "(" + resultNewsRecord.titleHtmlPathString + ")");
-				writer.newLine();
-				writer.write("Time:" +  timeString +  "(" + resultNewsRecord.timeHtmlPathString + ")");
-				writer.newLine();
-				writer.write("Source:" + resultNewsRecord.NewsSource + "(" + resultNewsRecord.sourceHtmlPathString + ")");
-				writer.newLine();
-				writer.write("Content:" + resultNewsRecord.NewsContent + "(" + resultNewsRecord.contentHtmlPathString + ")");
-				writer.newLine();
-				writer.close();
+				String pathString = mFilenameList.get(resultNewsRecord.Index) + ".txt";
+				try {
+					BufferedWriter writer = new BufferedWriter
+							(
+									new OutputStreamWriter
+									(
+									new FileOutputStream(pathString),
+									"utf-8"
+									)
+							);
+					if(resultNewsRecord.isValid() == false)
+					{
+						writer.write("invalid results");
+						writer.close();
+						continue;
+					}
+					//DateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+					//Date date = resultNewsRecord.NewsTime.getTime();
+					String timeString = resultNewsRecord.NewsTime == null?null:resultNewsRecord.NewsTime.getTime().getYear() + 1900
+							+ "-"
+							+ (resultNewsRecord.NewsTime.getTime().getMonth() + 1)
+							+ "-"
+							+ resultNewsRecord.NewsTime.getTime().getDate()
+							+ " "
+							+ resultNewsRecord.NewsTime.getTime().getHours()
+							+ ":"
+							+ resultNewsRecord.NewsTime.getTime().getMinutes()
+							+ ":"
+							+ resultNewsRecord.NewsTime.getTime().getSeconds();
+					writer.write("Title:" + resultNewsRecord.NewsTitle + "(" + resultNewsRecord.titleHtmlPath + ")");
+					writer.newLine();
+					writer.write("Time:" +  timeString +  "(" + resultNewsRecord.timeHtmlPath + ")");
+					writer.newLine();
+					writer.write("Source:" + resultNewsRecord.NewsSource + "(" + resultNewsRecord.sourceHtmlPath + ")");
+					writer.newLine();
+					writer.write("Content:" + resultNewsRecord.NewsContent + "(" + resultNewsRecord.contentHtmlPath + ")");
+					writer.newLine();
+					writer.close();
+			
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

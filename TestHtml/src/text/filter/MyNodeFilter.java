@@ -7,6 +7,8 @@ import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.ParserException;
 
 import test.basic.AdvanceTextNode;
+import test.basic.HtmlPath;
+import test.basic.HtmlPathNode;
 import test.visitor.InitCountVisitor;
 public class MyNodeFilter implements NodeFilter
 {
@@ -33,32 +35,40 @@ public class MyNodeFilter implements NodeFilter
 			String parentName = "";
 			//nows let's init the html path
 			Node tempNode = targetNode;
+			HtmlPath tempPath = new HtmlPath();
 			while((targetNode = targetNode.getParent()) != null)
 			{
 				//while processing we calculate its htmlPath
 				int sequence = 0;
 				Node siblingNode = targetNode;
 				parentName = ((TagNode)targetNode).getTagName();
-				htmlPathString = ((TagNode)targetNode).getTagName() + "/" + htmlPathString;
+				//htmlPathString = ((TagNode)targetNode).getTagName() + "/" + htmlPathString;
 				while((siblingNode = siblingNode.getPreviousSibling()) != null)
 				{
-					if(siblingNode.getClass().equals(targetNode) != true)
+					/*if(siblingNode.getClass().equals(targetNode) != true)
 					{
 						continue;
-					}
-					if(((TagNode)siblingNode).getTagName().equals(parentName) == true)
+					}*/
+					if(siblingNode instanceof TagNode)
 					{
-						sequence++;
+						if(((TagNode)siblingNode).getTagName().equals(parentName) == true)
+						{
+							sequence++;
+						}
 					}
+					
 				}
-				exactPathString = ((TagNode)targetNode).getTagName() + sequence + "/" + exactPathString;
+				tempPath.PathNodeList.insertElementAt(new HtmlPathNode(parentName, sequence),0);
+				//exactPathString = ((TagNode)targetNode).getTagName() + sequence + "/" + exactPathString;
 				/*if(targetNode instanceof LinkTag)
 				{
 					((AdvanceTextNode)tempNode).setWithinHref(true);	
 				}*/
 			}
-			((AdvanceTextNode)tempNode).setHtmlPath(htmlPathString);
-			((AdvanceTextNode)tempNode).setExactHtmlPath(exactPathString);
+			
+			((AdvanceTextNode)tempNode).mHtmlPath = tempPath;
+			//((AdvanceTextNode)tempNode).setHtmlPath(htmlPathString);
+			//((AdvanceTextNode)tempNode).setExactHtmlPath(exactPathString);
 			targetNode = tempNode;
 		}
 		if(targetNode instanceof Tag || targetNode instanceof Text)
