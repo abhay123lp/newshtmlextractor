@@ -27,9 +27,12 @@ import java.util.jar.JarException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.htmlparser.*;
+import org.htmlparser.tags.*;
 import org.htmlparser.Node;
 import org.htmlparser.Parser;
 import org.htmlparser.PrototypicalNodeFactory;
+import org.htmlparser.nodes.AbstractNode;
 import org.htmlparser.nodes.TextNode;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
@@ -44,6 +47,7 @@ import text.filter.MyNodeFilter;
 
 public class HtmlArchive 
 {
+	final static protected float sLeastRatioToBeContent = 0.6f;
 	private String mUrlPattern;
 	public String ArchiveName;
 	private File mDirectory;
@@ -158,15 +162,37 @@ public class HtmlArchive
 				PrototypicalNodeFactory prototypicalNodeFactory = new PrototypicalNodeFactory();
 				prototypicalNodeFactory.setTextPrototype(new AdvanceTextNode(null,i,i));
 				parser.setNodeFactory(prototypicalNodeFactory);
+				
 				NodeList nodeList = parser.extractAllNodesThatMatch(new MyNodeFilter());
 				Node[] nodes = nodeList.toNodeArray();
-				//clear the wrapper to new nodes to be added into and processed
+				
 				for (int j = 0; j < nodes.length; j++) 
 				{
 					if(nodes[j] instanceof TextNode)
 					{
-						//if(((AdvanceTextNode)nodes[j]).getWithinHref() == false)
+						if(((AdvanceTextNode)nodes[j]).getWithinHref() == false)
+						{
 							htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+						}
+						else {
+							Node linkNode = nodes[j];
+							while(((linkNode = linkNode.getParent()) instanceof LinkTag) == false && linkNode != null);
+							if(linkNode == null)
+							{
+								System.out.println("parser error!");
+							}
+							else {
+								linkNode = linkNode.getParent();
+								if(linkNode != null)
+								{
+									float ratio = ((AbstractNode)linkNode).getNormalTextRatio();
+									if(ratio > sLeastRatioToBeContent)
+										htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+								}
+								
+							}
+							
+						}
 						//else 
 						//{
 						//	ruledOutHrefTextNodes.add((AdvanceTextNode)nodes[j]);
@@ -682,5 +708,9 @@ public class HtmlArchive
 				e.printStackTrace();
 			}
 		}
+	}
+	public void locateROI()
+	{
+		
 	}
 }

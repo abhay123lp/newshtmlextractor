@@ -5,9 +5,8 @@ import org.htmlparser.lexer.Page;
 import org.htmlparser.nodes.TextNode;
 public class AdvanceTextNode extends TextNode
 {
-	private boolean mIsWithinHref = false;
-	public String mHtmlPath;
-	public String exactHtmlPath;
+	
+	
 	private int mIndex;//auxillary variable to help locating in array
 	public AdvanceTextNode(String text) {
 		super(text);
@@ -16,14 +15,14 @@ public class AdvanceTextNode extends TextNode
 	@Override
 	public boolean isWhiteSpace()
 	{
-		String string = this.getText().replaceAll(" ", "");
+		String string = this.getText().replaceAll("[\\s\\u3000]", "");
 		/*String string = this.getText();
 		for (int i = 0; i < string.length(); i++) {
 			if(string.indexOf(i) != ' ')
 				return false;
 		return true;
 		}*/
-		if(string.length() < 2)
+		if(string.length() < 1)
 			return true;
 		else
 			return false;
@@ -33,29 +32,8 @@ public class AdvanceTextNode extends TextNode
 	{
 		super(page,start,end);
 	}
-	public void setWithinHref(boolean b)
-	{
-		mIsWithinHref = b;
-	}
-	public boolean getWithinHref(){
-		return mIsWithinHref;
-	}
-	public void setHtmlPath(String str)
-	{
-		mHtmlPath = str;
-	}
-	public void setExactHtmlPath(String str)
-	{
-		exactHtmlPath = str;
-	}
-	public String getHtmlPath()
-	{
-		return mHtmlPath;
-	}
-	public String getExactHtmlPath()
-	{
-		return exactHtmlPath;
-	}
+	
+	
 	public void setIndex(int i)
 	{
 		mIndex = i;
