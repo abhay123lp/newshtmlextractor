@@ -45,6 +45,8 @@ public class HtmlManipulator {
 			styleMatcher = stylePattern.matcher(resultString);
 			resultString = styleMatcher.replaceAll("");
 			
+			resultString = Pattern.compile("<[\\s]*?meta[^>]*?>.*?<[^<>]*?/meta[\\s]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
+			resultString = Pattern.compile("<[\\s]*?form[^>]*?>.*?<[^<>]*?/form[\\s]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
 			resultString = Pattern.compile("<[\\s]*?span[^>]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
 			resultString = Pattern.compile("<[^<>]*?/span[^>]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
 			resultString = Pattern.compile("<[\\s]*?\\?xml[^>]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");

@@ -30,6 +30,7 @@ import java.io.Serializable;
 import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.lexer.Page;
+import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.visitors.NodeVisitor;
@@ -45,12 +46,55 @@ public abstract class AbstractNode implements Node, Serializable
 	/**
 	 * modified by Taylor Zhang, to extend it for the need of news extraction*
 	 */
-	public int TextCount;
-	public int LinkCount;
+	private int mTextCount;
+	private int mLinkCount;
+	public String mHtmlPath;
+	public String exactHtmlPath;
+	private boolean mIsWithinHref = false;
 	public float getNormalTextRatio()
 	{
-		return (float)(TextCount - LinkCount) / TextCount;
+		return (float)(mTextCount) / (mTextCount + mLinkCount);
 	}
+	public void setWithinHref(boolean b)
+	{
+		mIsWithinHref = b;
+	}
+	public boolean getWithinHref(){
+		return mIsWithinHref;
+	}
+	public int getTextCount()
+	{
+		return mTextCount;
+	}
+	public int getLinkCount()
+	{
+		return mLinkCount;
+	}
+	public void setTextCount(int i)
+	{
+		mTextCount = i;
+	}
+	public void setLinkCount(int i)
+	{
+		mLinkCount = i;
+	}
+	public void setHtmlPath(String str)
+	{
+		mHtmlPath = str;
+	}
+	public void setExactHtmlPath(String str)
+	{
+		exactHtmlPath = str;
+	}
+	public String getHtmlPath()
+	{
+		return mHtmlPath;
+	}
+	public String getExactHtmlPath()
+	{
+		return exactHtmlPath;
+	}
+	
 	
     /**
      * The page this node came from.

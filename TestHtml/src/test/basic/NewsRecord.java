@@ -26,4 +26,14 @@ public class NewsRecord
 	{
 		
 	}
+	public boolean isNewsRecordValid()
+	{
+		final int sLeastNumberToBeValidContent = 20;
+		final int sMaxDistanceToBeCloseEnough = 4;
+		if(NewsContent == null)
+			return false;
+		if(NewsContent.length() < sLeastNumberToBeValidContent)
+			return false;
+		return true;
+	}
 }
