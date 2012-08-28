@@ -35,6 +35,8 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.visitors.NodeVisitor;
 
+import test.basic.HtmlPath;
+
 /**
  * The concrete base class for all types of nodes (tags, text remarks).
  * This class provides basic functionality to hold the {@link Page}, the
@@ -48,8 +50,9 @@ public abstract class AbstractNode implements Node, Serializable
 	 */
 	private int mTextCount;
 	private int mLinkCount;
-	public String mHtmlPath;
-	public String exactHtmlPath;
+	//public String mHtmlPath;
+	//public String exactHtmlPath;
+	public HtmlPath mHtmlPath = new HtmlPath();
 	private boolean mIsWithinHref = false;
 	public float getNormalTextRatio()
 	{
@@ -78,6 +81,7 @@ public abstract class AbstractNode implements Node, Serializable
 	{
 		mLinkCount = i;
 	}
+	/*
 	public void setHtmlPath(String str)
 	{
 		mHtmlPath = str;
@@ -93,7 +97,7 @@ public abstract class AbstractNode implements Node, Serializable
 	public String getExactHtmlPath()
 	{
 		return exactHtmlPath;
-	}
+	}*/
 	
 	
     /**

@@ -18,6 +18,7 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.SimpleNodeIterator;
 
 import test.basic.AdvanceTextNode;
+import test.basic.HtmlPath;
 import test.basic.NewsRecord;
 import test.classifier.SourceIdentifier;
 
@@ -29,7 +30,7 @@ public class HtmlWrapper
 		public int EndIndex;
 		public int ImportanceFactor;
 		public int TextNumber;
-		public String HtmlPath;
+		public HtmlPath mHtmlPath;
 		public Block()
 		{
 		}
@@ -203,7 +204,7 @@ public class HtmlWrapper
 			Block block = new Block();
 			block.StartIndex = i;
 			block.TextNumber = 1;
-			block.HtmlPath = node.getHtmlPath();
+			block.mHtmlPath = new HtmlPath(node.mHtmlPath);
 			int length = node.getText().length();
 			int j = i + 1;
 			//we agregate all **consecutive** text nodes that has the **same htmlPath**
@@ -223,7 +224,7 @@ public class HtmlWrapper
 					continue;
 				}
 				accumulateContinuousHrefNum = 0;
-				if(nextNode.getHtmlPath().equals(node.getHtmlPath()))
+				if(nextNode.mHtmlPath.isPartlyEqualTo(node.mHtmlPath))
 				{
 					length += nextNode.getText().length();
 					j++;
@@ -247,7 +248,7 @@ public class HtmlWrapper
 	}
 	//when everything is ready,call this to figure out the information we want to 
 	//know from this html based on the blocks and textnodes
-	@SuppressWarnings("deprecation")
+	
 	public NewsRecord Manipulate() throws Exception
 	{
 		int indexOfMostPossibleBlock = -1;
@@ -268,7 +269,7 @@ public class HtmlWrapper
 		String contentString = "";
 		contentString = this.extractBlockText(contentBlock);
 		resultNewsRecord.NewsContent = contentString;
-		resultNewsRecord.contentHtmlPathString = contentBlock.HtmlPath;
+		resultNewsRecord.contentHtmlPath = contentBlock.mHtmlPath;
 		//for time, we use regex expression, and search all the text nodes before the content block
 		//also, we assume that the right time is the closest time before the content block.
 		AdvanceTextNode tempAdvanceTextNode, timeNode = null;
@@ -292,7 +293,7 @@ public class HtmlWrapper
 		else {
 			//String timeString =  timeMatcher.group();
 			resultNewsRecord.NewsTime = extractTimeFromString(timeNode.getText());
-			resultNewsRecord.timeHtmlPathString = timeNode.getHtmlPath();
+			resultNewsRecord.timeHtmlPath = timeNode.mHtmlPath;
 		}
 		AdvanceTextNode titleTextNode = null;int titleIndex = -1;
 		Pattern titlePattern = Pattern.compile("[\u4E00-\u9FA5]{2,}.*?[\u4E00-\u9FA5]{2,}");
@@ -312,7 +313,7 @@ public class HtmlWrapper
 		if(titleTextNode == null)
 			resultNewsRecord.NewsTitle = null;
 		else {
-			resultNewsRecord.titleHtmlPathString = titleTextNode.getExactHtmlPath();
+			resultNewsRecord.titleHtmlPath = titleTextNode.mHtmlPath;
 			resultNewsRecord.NewsTitle = titleTextNode.getText();
 		}
 		
@@ -346,7 +347,7 @@ public class HtmlWrapper
 						
 						String sourceString = subString.substring(0,sourceend);
 						resultNewsRecord.NewsSource = sourceString.trim();
-						resultNewsRecord.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();
+						resultNewsRecord.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
 					}
 				}
 				else //maybe in the next node
@@ -357,7 +358,7 @@ public class HtmlWrapper
 						//if(tempAdvanceTextNode.getWithinHref())
 						//{
 							resultNewsRecord.NewsSource = tempAdvanceTextNode.getText();
-							resultNewsRecord.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();
+							resultNewsRecord.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
 						//}
 					}
 				}
@@ -379,7 +380,7 @@ public class HtmlWrapper
 					if(found = SourceIdentifier.isSourceString(tempString))
 					{
 						resultNewsRecord.NewsSource = tempString;
-						resultNewsRecord.sourceHtmlPathString = tempAdvanceTextNode.getExactHtmlPath();//HtmlPath();
+						resultNewsRecord.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
 						break;
 					}
 				}
