@@ -26,7 +26,7 @@ public class NewsRecord
 	{
 		
 	}
-	public boolean isNewsRecordValid()
+	public boolean isValid()
 	{
 		final int sLeastNumberToBeValidContent = 20;
 		final int sMaxDistanceToBeCloseEnough = 4;
