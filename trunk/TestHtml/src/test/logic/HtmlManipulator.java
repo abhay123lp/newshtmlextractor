@@ -38,12 +38,14 @@ public class HtmlManipulator {
 		try {
 			String regEx_ScriptString = "<[\\s]*?script[^>]*?>.*?<[^<>]*?/script[\\s]*?>";
 			String regEx_StyleString = "<[\\s]*?style[^>]*?>.*?<[^<>]*?/style[\\s]*?>";
+			resultString = Pattern.compile("<!--[\\w\\W\r\\n]*?-->").matcher(resultString).replaceAll("");
 			scriptPattern = Pattern.compile(regEx_ScriptString,Pattern.CASE_INSENSITIVE);
 			scriptMatcher = scriptPattern.matcher(resultString);
 			resultString = scriptMatcher.replaceAll("");
 			stylePattern = Pattern.compile(regEx_StyleString,Pattern.CASE_INSENSITIVE);
 			styleMatcher = stylePattern.matcher(resultString);
 			resultString = styleMatcher.replaceAll("");
+			
 			
 			resultString = Pattern.compile("<[\\s]*?head[^>]*?>.*?<[^<>]*?/head[\\s]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
 			resultString = Pattern.compile("<[\\s]*?form[^>]*?>.*?<[^<>]*?/form[\\s]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
