@@ -580,7 +580,7 @@ public class HtmlArchive
 							if(sourceMatcher.find())
 							{
 								int e = sourceMatcher.end();
-								if(tempString.length() - e > 3)//something behind
+								if(tempString.length() - e >= 2)//something behind
 								{
 									String subString = tempString.substring(e);
 									Pattern chinesePattern = Pattern.compile("[\u4E00-\u9FA5]");
