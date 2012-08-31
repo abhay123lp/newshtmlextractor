@@ -38,7 +38,7 @@ public class NewsRecord
 		{
 			if(contentHtmlPath.findDiscrepancyLevel(timeHtmlPath) >= sMaxDistanceToBeCloseEnough)
 			{
-				return false;
+				//return false;
 			}
 		}
 		

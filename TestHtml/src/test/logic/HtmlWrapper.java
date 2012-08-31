@@ -226,7 +226,8 @@ public class HtmlWrapper
 				accumulateContinuousHrefNum = 0;
 				if(nextNode.mHtmlPath.isPartlyEqualTo(node.mHtmlPath))
 				{
-					length += nextNode.getText().length();
+					//the length of chinese characters
+					length += nextNode.getText().replaceAll("[^(\\u4E00-\\u9FA5)]", "").length();
 					j++;
 					block.TextNumber ++;
 				}
@@ -288,17 +289,40 @@ public class HtmlWrapper
 				break;
 			}
 		}
-		if(timeNode == null || timeMatcher == null)
-			resultNewsRecord.NewsTime = null;
+		if(timeNode == null)
+		{
+			//if it's not before the content,it might be after it
+			/*for (int i = contentBlock.EndIndex + 1; i < this.getNodeNumber(); i++) {
+				tempAdvanceTextNode = mTextNodes.get(i);
+				if(tempAdvanceTextNode.getWithinHref())
+					continue;
+				timeMatcher = timePattern.matcher(tempAdvanceTextNode.getText());
+				if(timeMatcher.find())
+				{
+					timeIndex = i;
+					timeNode = tempAdvanceTextNode;
+					break;
+				}
+			}
+			if(timeNode == null)//still not found
+			{*/
+				resultNewsRecord.NewsTime = null;
+				resultNewsRecord.timeHtmlPath = null;
+			/*}
+			else {
+				resultNewsRecord.NewsTime = extractTimeFromString(timeNode.getText());
+				resultNewsRecord.timeHtmlPath = timeNode.mHtmlPath;
+			}*/
+		}
 		else {
-			//String timeString =  timeMatcher.group();
 			resultNewsRecord.NewsTime = extractTimeFromString(timeNode.getText());
 			resultNewsRecord.timeHtmlPath = timeNode.mHtmlPath;
 		}
 		AdvanceTextNode titleTextNode = null;int titleIndex = -1;
-		Pattern titlePattern = Pattern.compile("[\u4E00-\u9FA5]{2,}.*?[\u4E00-\u9FA5]{2,}");
+		Pattern titlePattern = Pattern.compile("[\\u4E00-\\u9FA5]{2,}.*?[\\u4E00-\\u9FA5]{2,}");
 		Matcher titleMatcher = null;
-		for (int i = timeIndex - 1; i >= 0; i--) {
+		int startIndex = timeIndex < contentBlock.StartIndex?timeIndex:contentBlock.StartIndex;
+		for (int i = startIndex - 1; i >= 0; i--) {
 			tempAdvanceTextNode = mTextNodes.get(i);
 			if(tempAdvanceTextNode.getWithinHref())
 				continue;
@@ -331,7 +355,7 @@ public class HtmlWrapper
 				if(tempString.length() - e >= 2)//something behind
 				{
 					String subString = tempString.substring(e);
-					Pattern chinesePattern = Pattern.compile("[\u4E00-\u9FA5]");
+					Pattern chinesePattern = Pattern.compile("[\\u4E00-\\u9FA5]");
 					Matcher chineseMatcher = chinesePattern.matcher(subString);
 					if(chineseMatcher.find())
 					{
@@ -355,25 +379,75 @@ public class HtmlWrapper
 					if(i < contentBlock.StartIndex - 1)
 					{
 						tempAdvanceTextNode = mTextNodes.get(i + 1);
-						//if(tempAdvanceTextNode.getWithinHref())
-						//{
+						if(tempAdvanceTextNode.getWithinHref())
+						{
 							resultNewsRecord.NewsSource = tempAdvanceTextNode.getText();
 							resultNewsRecord.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
-						//}
+						}
 					}
 				}
 				
 			}
 		}
+		if(resultNewsRecord.NewsSource == null) // haven't found any specifier word between the title and body
+		{
+			//try to search from the bottom
+			boolean found = false;
+			for (int i = contentBlock.EndIndex + 1; i < this.getNodeNumber(); i++) 
+			{
+				tempAdvanceTextNode = mTextNodes.get(i);
+				String tempString = tempAdvanceTextNode.getText();
+				Matcher sourceMatcher = sourcePattern.matcher(tempString);
+				if(sourceMatcher.find())
+				{
+					int e = sourceMatcher.end();
+					if(tempString.length() - e >= 2)//something behind
+					{
+						String subString = tempString.substring(e);
+						Pattern chinesePattern = Pattern.compile("[\\u4E00-\\u9FA5]");
+						Matcher chineseMatcher = chinesePattern.matcher(subString);
+						if(chineseMatcher.find())
+						{
+							int sourceend;
+							for (sourceend = 0; sourceend < subString.length();sourceend++) {
+								if(subString.charAt(sourceend) == ' ' || (int)subString.charAt(sourceend) == 12288)
+								{
+									break;
+								}
+									
+							}
+							
+							String sourceString = subString.substring(0,sourceend);
+							resultNewsRecord.NewsSource = sourceString.trim();
+							resultNewsRecord.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
+						}
+					}
+					else //maybe in the next node
+					{
+						if(i < this.getNodeNumber() - 1)
+						{
+							tempAdvanceTextNode = mTextNodes.get(i + 1);
+							if(tempAdvanceTextNode.getWithinHref())
+							{
+								resultNewsRecord.NewsSource = tempAdvanceTextNode.getText();
+								resultNewsRecord.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
+							}
+						}
+					}
+					
+				}
+			}
+		}
 		if(resultNewsRecord.NewsSource == null) // haven't found any specifier word
 		{
-			
+			//try regex matching
+			//first search before
 			boolean found = false;
 			for (int i = titleIndex + 1; i < contentBlock.StartIndex; i++) 
 			{
 				tempAdvanceTextNode = mTextNodes.get(i);
 				String tempString = tempAdvanceTextNode.getText();
-				String[] splitedStrings = tempString.split("[\\s\u3000]+");
+				String[] splitedStrings = tempString.split("[\\s\\u3000]+");
 				for (int j = 0; j < splitedStrings.length; j++) 
 				{
 					tempString = splitedStrings[j];
@@ -386,6 +460,28 @@ public class HtmlWrapper
 				}
 				if(found)
 					break;
+			}
+			if(!found)
+			{
+				//then try after the body
+				for (int i = contentBlock.EndIndex + 1; i < getNodeNumber(); i++) 
+				{
+					tempAdvanceTextNode = mTextNodes.get(i);
+					String tempString = tempAdvanceTextNode.getText();
+					String[] splitedStrings = tempString.split("[\\s\\u3000]+");
+					for (int j = 0; j < splitedStrings.length; j++) 
+					{
+						tempString = splitedStrings[j];
+						if(found = SourceIdentifier.isSourceString(tempString))
+						{
+							resultNewsRecord.NewsSource = tempString;
+							resultNewsRecord.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
+							break;
+						}
+					}
+					if(found)
+						break;
+				}
 			}
 		}
 		return resultNewsRecord;
