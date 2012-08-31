@@ -93,9 +93,11 @@ public class HtmlManager
 	}
 	public void ProcessAll()
 	{
+		int size = 0;
 		for (int i = mHtmlArchives.size() - 1; i >= 0; i--) {
 			HtmlArchive archive = mHtmlArchives.get(i);
 			archive.CollectFile();
+			size += archive.getFilesNumber();
 			archive.Initialize();
 			archive.ruleOutUselessText();
 			archive.ExtractRecord();
@@ -104,7 +106,7 @@ public class HtmlManager
 			archive.ReleaseUselessSpace();
 			mHtmlArchives.remove(i);
 		}
-		
+		System.out.println(size);
 	}
 	public void AddArchive(HtmlArchive archive)
 	{
