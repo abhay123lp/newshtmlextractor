@@ -11,7 +11,7 @@ public class SourceIdentifier {
 		final int leastLengthToBeSource = 2;
 		final int maxLengthToBeSource = 8;
 		String tempString = str;
-		Pattern sourcePattern = Pattern.compile(".+[网报线区坛娱]",Pattern.CASE_INSENSITIVE);
+		Pattern sourcePattern = Pattern.compile(".+[网报线区坛娱台视频播乐]",Pattern.CASE_INSENSITIVE);
 		Matcher sourceMatcher = sourcePattern.matcher(tempString);
 		int length = 0;
 		boolean atleastOneMatch = false;
@@ -33,12 +33,6 @@ public class SourceIdentifier {
 		}
 		return false;
 	}
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
+	
 
 }

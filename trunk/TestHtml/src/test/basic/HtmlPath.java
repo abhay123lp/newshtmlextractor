@@ -27,6 +27,21 @@ public class HtmlPath {
 			PathNodeList.add(iterator.next());
 		}
 	}
+	public boolean isLink()
+	{
+		if(PathNodeList.size() > 0)
+		{
+			if(PathNodeList.get(PathNodeList.size() - 1).getTagName().equals("A"))
+			{
+				return true;
+			}
+			else
+				return false;
+		}
+		else {
+			return false;
+		}
+	}
 	public HtmlPath()
 	{
 		

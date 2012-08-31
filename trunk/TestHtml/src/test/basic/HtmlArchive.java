@@ -47,7 +47,7 @@ import text.filter.MyNodeFilter;
 
 public class HtmlArchive 
 {
-	final static protected float sLeastRatioToBeContent = 0.6f;
+	final static protected float sLeastRatioToBeContent = 0.4f;
 	private String mUrlPattern;
 	public String ArchiveName;
 	private File mDirectory;
@@ -176,7 +176,12 @@ public class HtmlArchive
 					{
 						if(((AdvanceTextNode)nodes[j]).getWithinHref() == false)
 						{
-							htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+							AbstractNode parentNode = (AbstractNode) nodes[j].getParent();
+							if(parentNode != null && parentNode.getNormalTextRatio() > sLeastRatioToBeContent)
+							{
+								htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+							}
+							
 						}
 						else {
 							Node linkNode = nodes[j];
@@ -455,7 +460,7 @@ public class HtmlArchive
 		//after this ,we will check each record and see whether their path is right
 		for (int i = 0; i < mRecordList.size(); i++) {
 			NewsRecord record = mRecordList.get(i);
-			boolean contentMatch = (record.contentHtmlPath == null)?false:record.contentHtmlPath.isPartlyEqualTo(mostPossibleContentPath);
+			boolean contentMatch = (record.contentHtmlPath == null)?false:record.contentHtmlPath.isCompletelyEqualTo(mostPossibleContentPath);
 			boolean titleMatch = (record.titleHtmlPath == null)?false:record.titleHtmlPath.isCompletelyEqualTo(mostPossibleTitlePath);
 			boolean timeMatch = (record.timeHtmlPath == null)?false:record.timeHtmlPath.isCompletelyEqualTo(mostPossibleTimePath);
 			boolean sourceMatch = record.sourceHtmlPath == null?false:record.sourceHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath);
@@ -480,58 +485,85 @@ public class HtmlArchive
 					{
 						if(nodes[j] instanceof TextNode)
 						{
-							htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+							if(((AdvanceTextNode)nodes[j]).getWithinHref() == false)
+							{
+								AbstractNode parentNode = (AbstractNode) nodes[j].getParent();
+								if(parentNode != null && parentNode.getNormalTextRatio() > sLeastRatioToBeContent)
+								{
+									htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+								}
+								
+							}
+							else {
+								Node linkNode = nodes[j];
+								while(((linkNode = linkNode.getParent()) instanceof LinkTag) == false && linkNode != null);
+								if(linkNode == null)
+								{
+									System.out.println("parser error!");
+								}
+								else {
+									linkNode = linkNode.getParent();
+									if(linkNode != null)
+									{
+										float ratio = ((AbstractNode)linkNode).getNormalTextRatio();
+										if(ratio > sLeastRatioToBeContent)
+											htmlWrapper.addNode((AdvanceTextNode)nodes[j]);
+									}
+									
+								}
+								
+							}
 						}
 					}
 					htmlWrapper.InitializeBlockList();
-					int lastImportantFactor = 0;
-					int originBodyIndex = -1, bodyIndex = -1, updateBodyIndex = -1;
-					int originTimeIndex = -1, timeIndex = -1, updateTimeIndex = -1;
-					int originalMostImportantFactor = 0;
-					for (int j = 0; j < htmlWrapper.getBlockNumber(); j++) {
-						Block block = htmlWrapper.getBlock(j);
+					//update the content following the htmlpath(if not null)
+					//for content body,if we are going to update it, we search for the first block to match the html path
+					//if we don't need to update it or we cannot find the match block,we set the bodyIndex to the original block index
+					int bodyIndex = -1;
+					if(mostPossibleContentPath !=  null && !contentMatch)
+					{
+						int lastImportantFactor = 0;
 						
-							if(!contentMatch && block.mHtmlPath.isPartlyEqualTo(mostPossibleContentPath))
-							{
-								if(block.ImportanceFactor > lastImportantFactor)
+						for (int j = 0; j < htmlWrapper.getBlockNumber(); j++) {
+							Block block = htmlWrapper.getBlock(j);
+							
+								if(!contentMatch && block.mHtmlPath.isCompletelyEqualTo(mostPossibleContentPath))
 								{
-
-									lastImportantFactor = block.ImportanceFactor;
-									bodyIndex = j;
-								}	
-							}
-						if(block.ImportanceFactor > originalMostImportantFactor)
+									if(block.ImportanceFactor > lastImportantFactor)
+									{
+										lastImportantFactor = block.ImportanceFactor;
+										bodyIndex = j;
+									}	
+								}
+						}
+						if(bodyIndex != -1)
 						{
-							originalMostImportantFactor = block.ImportanceFactor;
-							originBodyIndex = j;
+							record.contentHtmlPath = mostPossibleContentPath;
+							record.NewsContent = htmlWrapper.extractBlockText(htmlWrapper.getBlock(bodyIndex));
 						}
 					}
 					if(bodyIndex == -1)
 					{
-						bodyIndex = originBodyIndex;
-						record.contentHtmlPath = htmlWrapper.getBlock(bodyIndex).mHtmlPath;
-						record.NewsContent = htmlWrapper.extractBlockText(htmlWrapper.getBlock(bodyIndex));
-					}
-					else if(!contentMatch)
-					{
-						record.contentHtmlPath = mostPossibleContentPath;
-						record.NewsContent = htmlWrapper.extractBlockText(htmlWrapper.getBlock(bodyIndex));
-					}
-					timeIndex = htmlWrapper.getBlock(bodyIndex).StartIndex;
-					for (int m = timeIndex - 1;m >= 0; m--) {
-						AdvanceTextNode node = htmlWrapper.getNode(m);
-						if(node.getWithinHref())
-							continue;
-						if(timeMatch)
-						{
-							GregorianCalendar timeCalendar = HtmlWrapper.extractTimeFromString(node.getText());
-							if(timeCalendar != null)
+						//find the original one
+						for (int j = 0; j < htmlWrapper.getBlockNumber(); j++) {
+							Block block = htmlWrapper.getBlock(j);
+							if(block.mHtmlPath.isCompletelyEqualTo(record.contentHtmlPath))
 							{
-								timeIndex = m;
+								bodyIndex = j;
 								break;
 							}
+					
 						}
-						else {
+					}
+					//for time,we simply find the first matched textnode if we want it updated
+					if(mostPossibleTimePath != null && !timeMatch)
+					{
+						int timeIndex = 0;
+						for (int m = 0;m < htmlWrapper.getNodeNumber(); m++) {
+							AdvanceTextNode node = htmlWrapper.getNode(m);
+							if(node.getWithinHref())
+								continue;
+							
 							if(node.mHtmlPath.isCompletelyEqualTo(mostPossibleTimePath))
 							{
 								GregorianCalendar timeCalendar = HtmlWrapper.extractTimeFromString(node.getText());
@@ -546,110 +578,128 @@ public class HtmlArchive
 						}
 					}
 					
+					//for title,it's quite similar to the body,since we need both of them to search for the source
 					int titleIndex = -1;
-					for(int n = timeIndex - 1; n >= 0; n--) {
-						AdvanceTextNode titleTextNode = htmlWrapper.getNode(n);
-						if(titleTextNode.getWithinHref())
-							continue;
-						if(!titleMatch)
-						{
-							if(titleTextNode.mHtmlPath.isCompletelyEqualTo(mostPossibleTitlePath))
-							{
-								record.titleHtmlPath = mostPossibleTitlePath;
-								record.NewsTitle = titleTextNode.getText();
-								titleIndex = n;
-								break;
-							}
-							
-						}
-						else {
-							if(titleTextNode.getText().equals(record.NewsTitle))
-							{
-								titleIndex = n;
-								break;
-							}
-						}
-					}
-					
-					if(!sourceMatch)
+					if(mostPossibleTitlePath != null && !titleMatch)
 					{
-						AdvanceTextNode tempAdvanceTextNode = null;
-						Pattern sourcePattern = Pattern.compile("来[源于自]于?[:：]");
-						boolean found = false;
-						int endlimit = htmlWrapper.getBlock(bodyIndex).StartIndex; //the limitation of the range of searching source
-						for (int i1 = endlimit - 1; i1 > titleIndex; i1--) {
-							tempAdvanceTextNode = htmlWrapper.getNode(i1);
-							String tempString = tempAdvanceTextNode.getText();
-							Matcher sourceMatcher = sourcePattern.matcher(tempString);
-							if(sourceMatcher.find())
+						for (int m = 0;m < htmlWrapper.getNodeNumber(); m++) {
+							AdvanceTextNode node = htmlWrapper.getNode(m);
+							if(node.getWithinHref())
+								continue;
+							
+							if(node.mHtmlPath.isCompletelyEqualTo(mostPossibleTitlePath))
 							{
-								int e = sourceMatcher.end();
-								if(tempString.length() - e >= 2)//something behind
-								{
-									String subString = tempString.substring(e);
-									Pattern chinesePattern = Pattern.compile("[\u4E00-\u9FA5]");
-									Matcher chineseMatcher = chinesePattern.matcher(subString);
-									if(chineseMatcher.find())
-									{
-										int sourceend;
-										for (sourceend = 0; sourceend < subString.length();sourceend++) {
-											//System.out.print((int)subString.charAt(sourceend));
-											if(subString.charAt(sourceend) == ' ' || (int)subString.charAt(sourceend) == 12288)
-											{
-												break;
-											}
-												
-										}
-										
-										String sourceString = subString.substring(0,sourceend);
-										found = true;
-										record.NewsSource = sourceString.trim();
-										record.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
-										if(record.sourceHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath))
-											break;
-									}
-								}
-								else //maybe in the next node
-								{
-									if(i1 < endlimit - 1)
-									{
-										tempAdvanceTextNode = htmlWrapper.getNode(i1 + 1);
-										//if(tempAdvanceTextNode.getWithinHref())
-										//{
-										found = true;
-										record.NewsSource = tempAdvanceTextNode.getText();
-										record.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;
-										if(record.sourceHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath))
-											break;
-										//}
-									}
-								}
 								
-							}
-						}
-						if(!found) // haven't found any specifier word
-						{
-							for (int i1 = endlimit - 1; i1 > titleIndex; i1--) 
-							{
-								tempAdvanceTextNode = htmlWrapper.getNode(i1);
-								String tempString = tempAdvanceTextNode.getText();
-								String[] splitedStrings = tempString.split("[\\s ]+");
-								for (int j = 0; j < splitedStrings.length; j++) 
-								{
-									tempString = splitedStrings[j];
-									if(found = SourceIdentifier.isSourceString(tempString))
-									{
-										record.NewsSource = tempString;
-										record.sourceHtmlPath = tempAdvanceTextNode.mHtmlPath;// HtmlPath();
-										if(record.sourceHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath))
-											break;
-									}
-								}
-								if(found)
+									titleIndex = m;
+									record.NewsTitle = ((AdvanceTextNode)node).getText();
+									record.titleHtmlPath = mostPossibleTitlePath;
 									break;
 							}
 						}
 					}
+					if(titleIndex == -1)
+					{
+						if(record.titleHtmlPath != null)
+						{
+							for (int k = 0; k < htmlWrapper.getNodeNumber(); k++) {
+								AdvanceTextNode node = htmlWrapper.getNode(k);
+								if(node.mHtmlPath.isCompletelyEqualTo(record.titleHtmlPath))
+								{
+									titleIndex = k;
+									break;
+								}
+							}
+						}
+						
+					}
+					if(mostPossibleSourcePath != null)
+					{
+						if(!sourceMatch)
+						{
+							if(mostPossibleSourcePath.isLink())//is a link
+							{
+								//just search the one that strictly match the path
+								for (int m = 0;m < htmlWrapper.getNodeNumber(); m++) {
+									AdvanceTextNode node = htmlWrapper.getNode(m);
+									
+									if(node.mHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath))
+									{
+											String tempString = ((AdvanceTextNode)node).getText();
+											if(SourceIdentifier.isSourceString(tempString))//for ensurance
+											{
+												record.NewsSource = ((AdvanceTextNode)node).getText();
+												record.sourceHtmlPath = mostPossibleSourcePath;
+												break;
+											}
+											
+									}
+								}
+							}// is a link ends
+							else  //not a link
+							{
+								//first,find the text node,and analyze its text,try to extract the source from it
+								for (int m = 0;m < htmlWrapper.getNodeNumber(); m++) 
+								{
+									AdvanceTextNode node = htmlWrapper.getNode(m);
+									
+									if(node.mHtmlPath.isCompletelyEqualTo(mostPossibleSourcePath))
+									{
+										String tempString = ((AdvanceTextNode)node).getText();
+										Pattern sourcePattern = Pattern.compile("来[源于自]于?[:：]");
+										Matcher sourceMatcher = sourcePattern.matcher(tempString);
+										
+										boolean found = false;
+										if(sourceMatcher.find())
+										{
+											int e = sourceMatcher.end();
+											if(tempString.length() - e >= 2)//something behind
+											{
+												String subString = tempString.substring(e);
+												Pattern chinesePattern = Pattern.compile("[\\u4E00-\\u9FA5]");
+												Matcher chineseMatcher = chinesePattern.matcher(subString);
+												if(chineseMatcher.find())
+												{
+													int sourceend;
+													for (sourceend = 0; sourceend < subString.length();sourceend++) 
+													{
+														if(subString.charAt(sourceend) == ' ' || (int)subString.charAt(sourceend) == 12288)
+														{
+															break;
+														}
+													}
+													String sourceString = subString.substring(0,sourceend).trim();
+													if(SourceIdentifier.isSourceString(sourceString))
+													{
+														found = true;
+														record.NewsSource = sourceString.trim();
+														record.sourceHtmlPath = node.mHtmlPath;
+													}
+												}
+											}
+										}//is there indicator ends
+										if(!found)//found no indicator 
+										{
+											tempString  = node.getText();
+											String[] splitedStrings = tempString.split("[\\s\\u3000]+");
+											for (int j = 0; j < splitedStrings.length; j++) 
+											{
+												tempString = splitedStrings[j];
+												if(found = SourceIdentifier.isSourceString(tempString))
+												{
+													record.NewsSource = tempString;
+													record.sourceHtmlPath = node.mHtmlPath;
+													found = true;
+													break;
+												}
+											}
+										}//found no indicator ends
+									}//path string matches ends
+								}//cycle the nodes ends
+							}//not a link ends
+							
+						}//source not matched
+					}//most possible path not null
+					
 					
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
