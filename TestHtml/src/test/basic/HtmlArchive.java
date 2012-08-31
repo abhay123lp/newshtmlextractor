@@ -58,6 +58,10 @@ public class HtmlArchive
 	{
 		mWrapperList.clear();
 	}
+	public int getFilesNumber()
+	{
+		return mFilenameList.size();
+	}
 	public static String getHtmlContentSafely(String htmlPath) throws IOException
 	{
 		InputStreamReader inputStreamReader = new InputStreamReader
