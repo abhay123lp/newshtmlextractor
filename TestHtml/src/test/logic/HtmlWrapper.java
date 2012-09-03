@@ -292,7 +292,7 @@ public class HtmlWrapper
 		if(timeNode == null)
 		{
 			//if it's not before the content,it might be after it
-			/*for (int i = contentBlock.EndIndex + 1; i < this.getNodeNumber(); i++) {
+			for (int i = contentBlock.EndIndex + 1; i < this.getNodeNumber(); i++) {
 				tempAdvanceTextNode = mTextNodes.get(i);
 				if(tempAdvanceTextNode.getWithinHref())
 					continue;
@@ -305,14 +305,14 @@ public class HtmlWrapper
 				}
 			}
 			if(timeNode == null)//still not found
-			{*/
+			{
 				resultNewsRecord.NewsTime = null;
 				resultNewsRecord.timeHtmlPath = null;
-			/*}
+			}
 			else {
 				resultNewsRecord.NewsTime = extractTimeFromString(timeNode.getText());
 				resultNewsRecord.timeHtmlPath = timeNode.mHtmlPath;
-			}*/
+			}
 		}
 		else {
 			resultNewsRecord.NewsTime = extractTimeFromString(timeNode.getText());

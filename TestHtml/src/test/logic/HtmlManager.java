@@ -99,7 +99,7 @@ public class HtmlManager
 			archive.CollectFile();
 			size += archive.getFilesNumber();
 			archive.Initialize();
-			archive.ruleOutUselessText();
+			//archive.ruleOutUselessText();
 			archive.ExtractRecord();
 			archive.UpdateRecord();
 			archive.saveRecord();
