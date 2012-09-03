@@ -28,11 +28,11 @@ public class NewsRecord
 	}
 	public boolean isValid()
 	{
-		final int sLeastNumberToBeValidContent = 20;
+		final int sLeastNumberToBeValidContent = 30;
 		final int sMaxDistanceToBeCloseEnough = 3;
 		if(NewsContent == null)
 			return false;
-		if(NewsContent.length() < sLeastNumberToBeValidContent)
+		if(NewsContent.replaceAll("[^(\\u4E00-\\u9FA5)]", "").length() < sLeastNumberToBeValidContent)
 			return false;
 		if(NewsTime != null)
 		{

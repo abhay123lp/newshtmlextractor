@@ -47,7 +47,7 @@ import text.filter.MyNodeFilter;
 
 public class HtmlArchive 
 {
-	final static protected float sLeastRatioToBeContent = 0.4f;
+	final static protected float sLeastRatioToBeContent = 0.3f;
 	private String mUrlPattern;
 	public String ArchiveName;
 	private File mDirectory;

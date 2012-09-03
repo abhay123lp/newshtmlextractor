@@ -19,8 +19,8 @@ public class TestMain {
 	 */
 	public static void main(String[] args) 
 	{
-		File rootFile = new File("C:\\Users\\firstprayer\\Desktop\\testdatabase\\testdatabase");//
-		//File rootFile = new File("C:\\Users\\firstprayer\\Desktop\\新建文件夹");
+		//File rootFile = new File("C:\\Users\\firstprayer\\Desktop\\testdatabase\\testdatabase");//
+		File rootFile = new File("C:\\Users\\firstprayer\\Desktop\\新建文件夹");
 		//File rootFile = new File("C:\\Users\\firstprayer\\Desktop\\clusteroutput");
 		
 		File[] archiveListFiles = rootFile.listFiles(new FileFilter() {
