@@ -34,8 +34,8 @@ import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.visitors.NodeVisitor;
+import org.newsextractor.util.HtmlPath;
 
-import test.basic.HtmlPath;
 
 /**
  * The concrete base class for all types of nodes (tags, text remarks).
@@ -48,12 +48,28 @@ public abstract class AbstractNode implements Node, Serializable
 	/**
 	 * modified by Taylor Zhang, to extend it for the need of news extraction*
 	 */
+	/**
+	 * the number of characters that are not in link
+	 */
 	private int mTextCount;
+	/**
+	 * the number of characters that are in link
+	 */
 	private int mLinkCount;
-	//public String mHtmlPath;
-	//public String exactHtmlPath;
+	/**
+	 * Html path
+	 */
 	public HtmlPath mHtmlPath = new HtmlPath();
+	/**
+	 * Whether the node is inside a link
+	 */
 	private boolean mIsWithinHref = false;
+	/**
+	 * This is a field indicating whether the node has been initialized
+	 * in case of unnecessary procession
+	 * @return
+	 */
+	public boolean IsVisited = false;
 	public float getNormalTextRatio()
 	{
 		return (float)(mTextCount) / (mTextCount + mLinkCount);
