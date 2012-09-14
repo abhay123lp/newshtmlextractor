@@ -30,8 +30,8 @@ public class NewsArbiter {
 	 */
 	public void Arbiter() throws IOException
 	{
-		//String PathIn="C:\\Users\\zhaoxin\\Desktop\\temp2";
-		String PathIn="D:\\html new\\testdatabase\\testdatabase\\731";
+		String PathIn="C:\\Users\\zhaoxin\\Desktop\\temp2";
+		//String PathIn="D:\\html new\\testdatabase\\testdatabase\\731";
 		String PathNewsOut="C:\\Users\\zhaoxin\\Desktop\\News\\";
 		String PathOthersOut="C:\\Users\\zhaoxin\\Desktop\\Others\\";
 		File rootfile=new File(PathIn);
@@ -61,11 +61,11 @@ public class NewsArbiter {
             String Content=new String(temp);
             WordFeature=DrawFeatureWord(Content);
             if(DecisionTree())
-            	System.out.println("yes");
-            	//SaveFile(PathNewsOut,ListFiles[i].getName(),Content);
+            	//System.out.println("yes");
+            	SaveFile(PathNewsOut,ListFiles[i].getName(),Content);
             else
-            	System.out.println("no");
-            	//SaveFile(PathOthersOut,ListFiles[i].getName(),Content);
+            	//System.out.println("no");
+            	SaveFile(PathOthersOut,ListFiles[i].getName(),Content);
 		}
 	}
 	/**
@@ -77,12 +77,25 @@ public class NewsArbiter {
 		//Include Url Time
 		if(UrlFeature.get(0) == 1)
 		{
-			//End with "/"
+			//"bbs"
 			if(UrlFeature.get(5) == -1)
 				return false;
-			//
+			//"index"
+			else if(UrlFeature.get(3) == -1)
+				return false;
+			//End with "/"
+			else if(UrlFeature.get(4) == -1)
+				return false;
+			//"blog"
+			else if(UrlFeature.get(6) == -1)
+				return false;
+			//"video"
+			else if(UrlFeature.get(7) == -1)
+				return false;
+			//"新闻"词频大于2
 			else if(WordFeature.get(11) > 2)
 			{
+				//news feature word in content
 				int score=UrlFeature.get(2);
 				for(int i=0; i < WordFeature.size()-1; i++)
 				{
@@ -97,10 +110,13 @@ public class NewsArbiter {
 			else
 				return false;
 		}
+		//No time feature in Url
 		else
 		{
+			//No first-level dir
 			if (UrlFeature.get(2) == 0)
 				return false;
+			//Not end with "/"
 			else if(UrlFeature.get(4) == 0)
 				return true;
 			else
@@ -155,6 +171,9 @@ public class NewsArbiter {
 		}
 		return vec;
 	}
+	/**
+	 * Judge if Url has time feature
+	 */
 	public boolean isTimeInUrl(String urlString){
 		if(Pattern.compile("index",Pattern.CASE_INSENSITIVE).matcher(urlString).find())
 			return false;
@@ -167,6 +186,9 @@ public class NewsArbiter {
 			return false;
 		}
 	}
+	/**
+	 * CalculateUrl feature
+	 */
 	public boolean CalculateUrl(String Url, String Word)
 	{
 		if(Word == "time/")
