@@ -168,4 +168,24 @@ public class HtmlManipulator {
 			return null;
 		}
 	}
+
+	/**
+	 * 
+	 * @param urlString
+	 * @return
+	 */
+	public boolean isNewsUrl(String urlString){
+		if(Pattern.compile("index",Pattern.CASE_INSENSITIVE).matcher(urlString).find())
+			return false;
+		Pattern newsUrlPattern = Pattern.compile("\\d{2}[:\\./\\-_]*?\\d{2}[:\\./\\-_]*?\\d{2}");
+		Matcher matcher = newsUrlPattern.matcher(urlString);
+		if(matcher.find()){
+			return true;
+		}
+		else {
+			return false;
+		}
+		
+	}
+
 }

@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.Hashtable;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.*;
@@ -23,14 +24,10 @@ public class HtmlCrawler {
 	BufferedReader reader;
 	Queue<String> urlQueue;
 	String url;
-	String Path;
+	String Path = "C:\\Users\\firstprayer\\Desktop\\testNewsIdentifier\\";
+	Hashtable<String, Boolean> visitedUrlHashtable = new Hashtable<>();
 	public boolean Access()
 	{
-        try {
-            Path="C:\\Users\\zhaoxin\\Desktop\\temp3\\";
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         try {
             huc=(HttpURLConnection)new URL(url).openConnection();
             return true;
@@ -41,11 +38,12 @@ public class HtmlCrawler {
         }
         return false;
 	}
-	public void craw()
+	public void craw(String targetDomain)
 	{
 		int depth=0;
-        url="http://news.sina.com.cn/china/";
+        url = targetDomain;
 		urlQueue=new LinkedBlockingQueue<String>();
+		visitedUrlHashtable.clear();
 		while(Access())
 		{
 			String Content=SaveContent();
@@ -54,7 +52,7 @@ public class HtmlCrawler {
 				extractURLs(Content);
 				depth++;
 			}
-			url=urlQueue.remove();
+			url=urlQueue.poll() ;
 			if(url == null)
 				break;
 		}
@@ -66,6 +64,8 @@ public class HtmlCrawler {
 		{
 			int endHref=contents[i].indexOf("\"");
 			String aHref= contents[i].substring(0, endHref);
+			if(visitedUrlHashtable.get(aHref) != null)
+				continue;
 			if(aHref.startsWith("http"))
 				urlQueue.add(aHref);
 			else if(aHref.startsWith("/"))
@@ -95,10 +95,12 @@ public class HtmlCrawler {
                 temp.append(str+"\n");
             }
             String Content=new String(temp);
+            System.out.println(url);
             BufferedWriter writer=new BufferedWriter
             		(
-            				new OutputStreamWriter(new FileOutputStream(Path+url.replaceAll("/", "_").replaceAll(":", "_")+".html"),"utf-8")
+            				new OutputStreamWriter(new FileOutputStream(Path+url.replaceAll("[/:\\.\\?#]", "_")+".html"),"utf-8")
             		);
+            visitedUrlHashtable.put(url, new Boolean(true));
             writer.write(Content);
             writer.close();
             return Content;
