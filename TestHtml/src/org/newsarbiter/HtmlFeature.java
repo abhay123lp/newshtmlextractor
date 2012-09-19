@@ -5,6 +5,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.htmlparser.util.ParserException;
+
 public class HtmlFeature {
 	
 	static private Vector<String> UrlFeatureDescriptionList = null;
@@ -54,6 +56,7 @@ public class HtmlFeature {
 	 * dimension 3: occurrence of "责[任]?编[辑]?"
 	 * dimension 4: occurrence of "来源"
 	 * dimension 5: occurrence of "评论"
+	 * dimension 6: 0/1,whether exist a block seems to be the one we want
 	 */
 	public Vector<Integer> WordFeature = new Vector<>();
 	public HtmlFeature(){
@@ -81,11 +84,23 @@ public class HtmlFeature {
 			String keywords = ContentFeatureDescriptionList.get(i);
 			WordFreq.add(keywordCalculateFreq(Text,keywords));
 		}
+		try {
+			if(RatioArbiter.RatioJudge(Text)){
+				WordFreq.add(1);
+			}
+			else{
+				WordFreq.add(0);
+			}
+		} catch (ParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return WordFreq;
 	}
 	
-	private Vector<Integer> DrawUrlFeature(String Url)
+	private Vector<Integer> DrawUrlFeature(String urlFileString)
 	{
+		String Url = urlFileString.replaceAll("\\.s?html?$", "");
 		Vector<Integer> vec=new Vector<Integer>();
 		if(isTimeInUrl(Url))
 			vec.add(1);
@@ -275,6 +290,13 @@ public class HtmlFeature {
 		return WordFeature.get(5);
 	}
 	
+	public boolean isTextContainDesiringBlock(){
+		if(WordFeature.get(6) > 0)
+			return true;
+		else{
+			return false;
+		}
+	}
 	/**
 	 * More features to be finished 
 	 * 
@@ -284,12 +306,5 @@ public class HtmlFeature {
 	
 	
 	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
 
 }

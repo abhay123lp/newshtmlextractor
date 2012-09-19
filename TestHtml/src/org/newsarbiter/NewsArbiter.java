@@ -108,11 +108,9 @@ public class NewsArbiter {
 		{
 			if(feature.isUrlContainNotContentInfo())
 				return false;
-			if(feature.getTextContainContentIndicatorCount() > 0)
-				return true;
-			if(feature.getTextContainJournalistCount() > 0)
-				return true;
-			if(feature.getTextContainReviewCount() > 0)
+			if(feature.isUrlNotLikelyContentPageEnding())
+				return false;
+			if(feature.isTextContainDesiringBlock())
 				return true;
 			return false;
 			/*
