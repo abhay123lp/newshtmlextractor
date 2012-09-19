@@ -21,28 +21,25 @@ public class NewsArbiter {
 	 * Based on decision tree
 	 * @throws IOException 
 	 */
-	public void Arbiter() throws IOException
+	public void ArbitrateDirectoryAndDivide(String PathIn,String PathNewsOut,String PathOthersOut) throws IOException
 	{
-		String PathIn="C:\\Users\\firstprayer\\Desktop\\testNewsIdentifier";
-		//String PathIn="D:\\html new\\testdatabase\\testdatabase\\731";
-		String PathNewsOut="C:\\Users\\firstprayer\\Desktop\\news\\";
-		String PathOthersOut="C:\\Users\\firstprayer\\Desktop\\Others\\";
 		File rootfile=new File(PathIn);
 		File[] ListFiles = rootfile.listFiles(new FileFilter() {
 			
 			@Override
 			public boolean accept(File pathname) {
 				// TODO Auto-generated method stub
-				if(pathname.isFile() && 
-						(pathname.getName().endsWith(".html") 
-								|| pathname.getName().endsWith(".htm")))
+				Pattern htmlPattern = Pattern.compile(".*\\.s?html?$",Pattern.CASE_INSENSITIVE);
+				
+				if(pathname.isFile() && htmlPattern.matcher(pathname.getName()).find())
 					return true;
 				return false;
 			}
 		});
+		
 		for(int i=0; i < ListFiles.length; i++)
 		{
-			InputStream is=new FileInputStream(ListFiles[i]);
+			InputStream is = new FileInputStream(ListFiles[i]);
 			@SuppressWarnings("resource")
 			BufferedReader reader = new BufferedReader(new InputStreamReader(is,"utf-8"));
 			StringBuffer temp=new StringBuffer();
@@ -53,10 +50,8 @@ public class NewsArbiter {
             String Content=new String(temp);
             HtmlFeature feature = new HtmlFeature(ListFiles[i].getName(),Content);
             if(DecisionTree(feature))
-            	//System.out.println("yes");
             	SaveFile(PathNewsOut,ListFiles[i].getName(),Content);
             else
-            	//System.out.println("no");
             	SaveFile(PathOthersOut,ListFiles[i].getName(),Content);
 		}
 	}
@@ -66,11 +61,15 @@ public class NewsArbiter {
 	 */
 	public boolean DecisionTree(HtmlFeature feature)
 	{
-		Vector<Integer> UrlFeature = feature.UrlFeature;
-		Vector<Integer> WordFeature = feature.WordFeature;
+		//Vector<Integer> UrlFeature = feature.UrlFeature;
+		//Vector<Integer> WordFeature = feature.WordFeature;
 		//Include Url Time
-		if(UrlFeature.get(0) == 1)
+		if(feature.isUrlContainTime())
 		{
+			if(feature.isUrlContainNotContentInfo())
+				return false;
+			return true;
+			/*
 			//"bbs"
 			if(UrlFeature.get(5) == -1)
 				return false;
@@ -102,19 +101,33 @@ public class NewsArbiter {
 				
 			}
 			else
-				return false;
+				return false;*/
 		}
 		//No time feature in Url
 		else
 		{
+			if(feature.isUrlContainNotContentInfo())
+				return false;
+			if(feature.getTextContainContentIndicatorCount() > 0)
+				return true;
+			if(feature.getTextContainJournalistCount() > 0)
+				return true;
+			if(feature.getTextContainReviewCount() > 0)
+				return true;
+			return false;
+			/*
 			//No first-level dir
 			if (UrlFeature.get(2) == 0)
+				return false;
+			if(feature.isUrlContainIndex())
+				return false;
+			if(feature.isUrlContainBBS())
 				return false;
 			//Not end with "/"
 			else if(UrlFeature.get(4) == 0)
 				return true;
 			else
-				return false;
+				return false;*/
 		}
 	}
 	/**
