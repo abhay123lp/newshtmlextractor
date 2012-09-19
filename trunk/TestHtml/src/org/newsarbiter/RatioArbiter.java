@@ -19,7 +19,7 @@ public class RatioArbiter {
 	 * Input the text of content
 	 * Out put if it seems like a news 
 	 */
-	boolean RatioJudge(String Text) throws ParserException
+	static boolean RatioJudge(String Text) throws ParserException
 	{
 		try
 		{

@@ -8,7 +8,7 @@ public class TestArbiter {
 		HtmlFeature.initFeatureDescription();
 		NewsArbiter arbiter=new NewsArbiter();
 		arbiter.ArbitrateDirectoryAndDivide(
-				"C:\\Users\\firstprayer\\Desktop\\测试数据\\temp4",
+				"C:\\Users\\firstprayer\\Desktop\\测试数据\\temp5",
 				"C:\\Users\\firstprayer\\Desktop\\news\\",
 				"C:\\Users\\firstprayer\\Desktop\\others\\");
 	}
