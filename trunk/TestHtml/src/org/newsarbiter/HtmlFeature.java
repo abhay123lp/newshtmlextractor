@@ -7,41 +7,101 @@ import java.util.regex.Pattern;
 
 public class HtmlFeature {
 	
-	public Vector<Integer> UrlFeature = null;
-	public Vector<Integer> WordFeature = null;
+	static private Vector<String> UrlFeatureDescriptionList = null;
+	static private Vector<String> ContentFeatureDescriptionList = null;
+	
+	static void initFeatureDescription(){
+		UrlFeatureDescriptionList = new Vector<String>(Arrays.asList(
+				"news/tech/stock1/ent/sports/auto/finance/book/edu/comic/games/baby/astro/lady/chanye/www/mil/bj/eladies/2008/business/money/it/digi/teamchina/yule/house/cul/learning/health/travel/women/nba/golf/weiqi/music/mobile/war/discover/history/"
+		//		"news/newshtml/newscenter/",
+				,"index/bbs/blog"
+	//			,"bbs/"
+		//		,"blog/"
+	//			,"video/"
+				));
+		ContentFeatureDescriptionList = new Vector<String>(Arrays.asList(
+				"正文"
+				//,"新闻中心"
+				,"报导/本报讯"
+				,"记者/作者"
+				,"责[任]?编[辑]"
+				,"来源"
+				//,"相关报导/相关专题/相关链接/相关新闻、"
+				//,"热点新闻、热评榜、热点评论、"
+				//,"新闻论坛、新闻搜索、新闻订阅、新闻排行、手机看新闻、"
+				,"评论"
+				//,"新闻、"
+				));
+		
+	}
+	/**
+	 * Url feature is a four-dimension vector
+	 * It looks like this:
+	 * (
+	 * dimension 0: 0/1,whether the url contains time information
+	 * dimension 1: 0/1,whether the url contains sub-directory
+	 * dimension 2: 0/1,whether the url contains some words that shouldn't appear in a content page,such as "index" or "bbs" or "blog"
+	 * dimension 3: 0/1,whether the url ends with '/'
+	 * )
+	 */
+	public Vector<Integer> UrlFeature = new Vector<>();
+	
+	/**
+	 * Content feature is a six-dimension vector
+	 * dimension 0: occurrence of "正文"
+	 * dimension 1: occurrence of "报导/本报讯"
+	 * dimension 2: occurrence of "记者/作者"
+	 * dimension 3: occurrence of "责[任]?编[辑]?"
+	 * dimension 4: occurrence of "来源"
+	 * dimension 5: occurrence of "评论"
+	 */
+	public Vector<Integer> WordFeature = new Vector<>();
 	public HtmlFeature(){
-		UrlFeature = new Vector<>();
-		WordFeature = new Vector<>();
+		
 	}
 	
 	public HtmlFeature(String url,String text){
 		UrlFeature = DrawUrlFeature(url);
 		WordFeature = DrawFeatureWord(text);
 	}
+	/**
+	 * Input the main text of the html file
+	 * Return the Feature Vector of the file based on statistics
+	 */
+	public Vector<Integer> DrawFeatureWord(String Text)
+	{
+		Vector<Integer> WordFreq = new Vector<Integer>();
+		//Initialize all Feature Word of a news
+		//FIXME:以静态常量的形式存储，且改用正则表达式？
+		/*Vector<String> FeatureWord=new Vector<String>(Arrays.asList("新闻中心、","正文、","报导、","记者、作者、","本报讯、",
+				"责任编辑。责编、","来源、本文来源、","相关报导、相关专题、相关链接、相关新闻、","热点新闻、热评榜、热点评论、","新闻论坛、新闻搜索、新闻订阅、新闻排行、手机看新闻、",
+				"评论、","新闻、"));*/
+		for(int i=0; i < ContentFeatureDescriptionList.size(); i++)
+		{
+			String keywords = ContentFeatureDescriptionList.get(i);
+			WordFreq.add(keywordCalculateFreq(Text,keywords));
+		}
+		return WordFreq;
+	}
 	
 	private Vector<Integer> DrawUrlFeature(String Url)
 	{
-		//TODO:
-		Vector<Integer> vec=new Vector<Integer>(8);
-		Vector<String> Feature=new Vector<String>(Arrays.asList("time/",
-				"news/tech/stock1/ent/sports/auto/finance/book/edu/comic/games/baby/astro/lady/chanye/www/mil/bj/eladies/2008/business/money/it/digi/teamchina/yule/house/cul/learning/health/travel/women/nba/golf/weiqi/music/mobile/war/discover/history/",
-				"news/newshtml/newscenter/","index/","_","bbs/","blog/","video/"));
-		for(int i=0; i < Feature.size(); i++)
-		{
-			if(i < 3)
-			{
-				if(CalculateUrl(Url,Feature.get(i)))
-					vec.add(1);
-				else
-					vec.add(0);
-			}
+		Vector<Integer> vec=new Vector<Integer>();
+		if(isTimeInUrl(Url))
+			vec.add(1);
+		else{
+			vec.add(0);
+		}
+		for(int i=0; i < UrlFeatureDescriptionList.size(); i++){
+			if(keywordDetection(Url,UrlFeatureDescriptionList.get(i)))
+				vec.add(1);
 			else
-			{
-				if(CalculateUrl(Url,Feature.get(i)))
-					vec.add(-1);
-				else
-					vec.add(0);
-			}
+				vec.add(0);
+		}
+		if(Url.endsWith("_"))
+			vec.add(1);
+		else {
+			vec.add(0);
 		}
 		return vec;
 	}
@@ -49,7 +109,7 @@ public class HtmlFeature {
 	/**
 	 * Judge if Url has time feature
 	 */
-	public boolean isTimeInUrl(String urlString){
+	private boolean isTimeInUrl(String urlString){
 		Pattern newsUrlPattern = Pattern.compile("\\d{2}[:\\./\\-_]*?\\d{2}[:\\./\\-_]*?\\d{2}");
 		Matcher matcher = newsUrlPattern.matcher(urlString);
 		if(matcher.find()){
@@ -60,58 +120,36 @@ public class HtmlFeature {
 		}
 	}
 	/**
-	 * CalculateUrl feature
+	 * Calculate keyword feature
+	 * keywords should be split into array by '/'
 	 */
-	public boolean CalculateUrl(String Url, String Word)
+	private boolean keywordDetection(String targetContent, String keywords)
 	{
-		if(Word == "time/")
+		String[] Words=keywords.split("/");
+		for(int i=0; i < Words.length; i++)
 		{
-			return isTimeInUrl(Url);
+			if(Pattern.compile(Words[i],Pattern.CASE_INSENSITIVE).matcher(targetContent).find())
+				return true;
 		}
-		else if(Word != "_")
-		{
-			String[] Words=Word.split("/");
-			for(int i=0; i < Words.length; i++)
-			{
-				if(Pattern.compile(Words[i],Pattern.CASE_INSENSITIVE).matcher(Url).find())
-					return true;
-			}
-			return false;
-		}
-		else if(Url.endsWith("_.html"))
-			return true;
-		else
-			return false;
+		return false;
 	}
 	
-	/**
-	 * Input the main text of the html file
-	 * Return the Feature Vector of the file based on statistics
-	 */
-	public Vector<Integer> DrawFeatureWord(String Text)
-	{
-		Vector<Integer> WordFreq = new Vector<Integer>(12);
-		//Initialize all Feature Word of a news
-		//FIXME:以静态常量的形式存储，且改用正则表达式？
-		Vector<String> FeatureWord=new Vector<String>(Arrays.asList("新闻中心、","正文、","报导、","记者、作者、","本报讯、",
-				"责任编辑。责编、","来源、本文来源、","相关报导、相关专题、相关链接、相关新闻、","热点新闻、热评榜、热点评论、","新闻论坛、新闻搜索、新闻订阅、新闻排行、手机看新闻、",
-				"评论、","新闻、"));
-		for(int i=0; i < FeatureWord.size(); i++)
-		{
-			String Word=FeatureWord.get(i);
-			WordFreq.add(CalculateFreq(Text,Word));
-		}
-		return WordFreq;
-	}
+	
 	/**
 	 * Calculate the frequency of a group of Feature Word,
-	 * which is splitted by "、"
+	 * which is splitted by "/"
 	 */
-	public int CalculateFreq(String Text,String Word)
+	private int keywordCalculateFreq(String Text,String keywords)
 	{
-		String[] Words=Word.split("、");
-		//For "新闻" we calculate the frequency
-		//Else if we find it, return 1
+		String[] Words=keywords.split("/");
+		int count = 0;
+		for (int i = 0; i < Words.length; i++) {
+			Matcher matcher = Pattern.compile(Words[i],Pattern.CASE_INSENSITIVE).matcher(Text);
+			while(matcher.find())
+				count++;
+		}
+		return count;
+		/**
 		if(Word !="新闻、")
 		{
 			for(int i=0; i < Words.length; i++)
@@ -133,8 +171,14 @@ public class HtmlFeature {
 				count++;
 			}
 			return count;
-		}
+		}*/
 	}
+	
+	
+	
+	/**
+	 * Public methods:
+	 */
 	
 	/**
 	 * Check if the url contains time information
@@ -148,7 +192,6 @@ public class HtmlFeature {
 			return false;
 		}
 	}
-	
 	/**
 	 * Check if the url is within a sub-category,like "sport", "celebrity", "internatial" and so on
 	 * @return
@@ -161,25 +204,23 @@ public class HtmlFeature {
 			return false;
 		}
 	}
-	
 	/**
-	 * See if it contains words like "newscenter" "news"...
+	 * See if it contains words like "index" "blog"...
 	 * @return
 	 */
-	public boolean isUrlContainNewsKeyword(){
-		if(UrlFeature.get(2) != 0){
+	public boolean isUrlContainNotContentInfo(){
+		if(UrlFeature.get(1) != 0){
 			return true;
 		}
 		else{
 			return false;
 		}
 	}
-	
 	/**
-	 * See if it contains "index"
+	 * See if it ends with '/'
 	 * @return
 	 */
-	public boolean isUrlContainIndex(){
+	public boolean isUrlNotLikelyContentPageEnding(){
 		if(UrlFeature.get(3) != 0){
 			return true;
 		}
@@ -187,47 +228,51 @@ public class HtmlFeature {
 			return false;
 		}
 	}
+
+	
 	/**
-	 * See if it contains "bbs"
-	 * @return
+	 * 
+	 * @return occurrence of "正文"
 	 */
-	public boolean isUrlContainBBS(){
-		if(UrlFeature.get(4) != 0){
-			return true;
-		}
-		else{
-			return false;
-		}
+	public int getTextContainContentIndicatorCount(){
+		return WordFeature.get(0);
+	}
+	
+
+	 /**
+	  * 
+	  * @return occurrence of "报导/本报讯"
+	  */	 
+	public int getTextContainReportCount(){
+		return WordFeature.get(1);
 	}
 	/**
-	 * See if it contains "blog"
-	 * @return
-	 */
-	public boolean isUrlContainBlog(){
-		if(UrlFeature.get(6) != 0){
-			return true;
-		}
-		else{
-			return false;
-		}
+	  * 
+	  * @return occurrence of "记者/作者"
+	  */
+	public int getTextContainJournalistCount(){
+		return WordFeature.get(2);
 	}
 	/**
-	 * See if it contains "video"
-	 * @return
-	 */
-	public boolean isUrlContainVideo(){
-		if(UrlFeature.get(7) != 0){
-			return true;
-		}
-		else{
-			return false;
-		}
+	  * 
+	  * @return occurrence of "责[任]?编[辑]?"
+	  */
+	public int getTextContainEditorCount(){
+		return WordFeature.get(3);
 	}
 	/**
-	 * @return the number of the occurrence of "新闻" in the text
-	 */
-	public int getTextContainNewsKeywordNumber(){
-		return WordFeature.get(11);
+	  * 
+	  * @return occurrence of "来源"
+	  */
+	public int getTextContainSourceCount(){
+		return WordFeature.get(4);
+	}
+	/**
+	  * 
+	  * @return occurrence of "评论"
+	  */
+	public int getTextContainReviewCount(){
+		return WordFeature.get(5);
 	}
 	
 	/**
