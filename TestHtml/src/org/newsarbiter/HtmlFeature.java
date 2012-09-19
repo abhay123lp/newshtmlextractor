@@ -209,7 +209,7 @@ public class HtmlFeature {
 	 * @return
 	 */
 	public boolean isUrlContainNotContentInfo(){
-		if(UrlFeature.get(1) != 0){
+		if(UrlFeature.get(2) != 0){
 			return true;
 		}
 		else{
