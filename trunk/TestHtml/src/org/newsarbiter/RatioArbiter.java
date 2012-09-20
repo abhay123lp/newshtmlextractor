@@ -12,8 +12,8 @@ import org.newsextractor.nodes.AdvanceTextNode;
 import org.newsextractor.textprocess.HtmlManipulator;
 
 public class RatioArbiter {
-	static double ratioThreshold=0.98;
-	static int TextCountThreshold=1000;
+	static double ratioThreshold=0.5;
+	static int TextCountThreshold=200;
 	/**
 	 * Judge the file according to the ratio of text and link+text
 	 * Input the text of content
@@ -39,20 +39,20 @@ public class RatioArbiter {
 			//for each node
 			for(int i=0; i < nodes.length; i++)
 			{
-				//calculate the ratio 
-				if(((AbstractNode)nodes[i]).getTextCount() == 0)
-					Ratio=0;
-				else
-					Ratio=(float) (((AbstractNode)nodes[i]).getTextCount()/
-						(((AbstractNode)nodes[i]).getTextCount()+(float)(((AbstractNode)nodes[i]).getLinkCount())));
-				//if a Div node is good enough
-				//that's to say its ratio and textcount are beyond the threshold
-				if(Ratio > ratioThreshold
-						&& nodes[i] instanceof TagNode 
-						&& ((TagNode)nodes[i]).getTagName().equals("DIV")
-						&& ((AbstractNode)nodes[i]).getTextCount() > TextCountThreshold)
+				if(nodes[i] instanceof TagNode)
 				{
-					return true;
+					if(((TagNode)nodes[i]).getTagName().equals("DIV"))
+					{
+						if(((AbstractNode)nodes[i]).getTextCount() > TextCountThreshold)
+						{
+							Ratio=(float) ((AbstractNode)nodes[i]).getTextCount() /
+									(((AbstractNode)nodes[i]).getTextCount() + (((AbstractNode)nodes[i]).getLinkCount()));
+							if(Ratio > ratioThreshold)
+							{
+								return true;
+							}
+						}
+					}
 				}
 			}
 			return false;

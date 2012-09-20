@@ -68,6 +68,8 @@ public class NewsArbiter {
 		{
 			if(feature.isUrlContainNotContentInfo())
 				return false;
+			if(!feature.isTextContainDesiringBlock())
+				return false;
 			return true;
 			/*
 			//"bbs"
@@ -110,8 +112,8 @@ public class NewsArbiter {
 				return false;
 			if(feature.isUrlNotLikelyContentPageEnding())
 				return false;
-			if(feature.isTextContainDesiringBlock())
-				return true;
+			//if(feature.isTextContainDesiringBlock())
+				//return true;
 			return false;
 			/*
 			//No first-level dir

@@ -25,6 +25,8 @@
 
 package org.htmlparser.nodes;
 
+import java.util.regex.Pattern;
+
 import org.htmlparser.Text;
 import org.htmlparser.lexer.Cursor;
 import org.htmlparser.lexer.Page;
@@ -216,7 +218,7 @@ public class TextNode
      */
     public boolean isWhiteSpace()
     {
-        if (mText == null || mText.trim().equals(""))
+        if (mText == null || Pattern.compile("[\u3000 ]",Pattern.CASE_INSENSITIVE).matcher(mText).replaceAll("").equals(""))
             return true;
         return false;
     }

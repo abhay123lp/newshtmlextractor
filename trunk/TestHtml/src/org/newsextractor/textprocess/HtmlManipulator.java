@@ -60,8 +60,8 @@ public class HtmlManipulator {
 			resultString = Pattern.compile("<!--[\\w\\W\r\\n]*?-->").matcher(resultString).replaceAll("");
 			
 			//remove style and scripts
-			String regEx_ScriptString = "<[\\s]*?script[^>]*?>.*?<[^<>]*?/script[\\s]*?>";
-			String regEx_StyleString = "<[\\s]*?style[^>]*?>.*?<[^<>]*?/style[\\s]*?>";
+			String regEx_ScriptString = "<[\\s]*?script[^>]*?>[\\s\\S]*?<[^<>]*?/script[\\s]*?>";
+			String regEx_StyleString = "<[\\s]*?style[^>]*?>[\\s\\S]*?<[^<>]*?/style[\\s]*?>";
 			
 			scriptPattern = Pattern.compile(regEx_ScriptString,Pattern.CASE_INSENSITIVE);
 			scriptMatcher = scriptPattern.matcher(resultString);
@@ -70,10 +70,11 @@ public class HtmlManipulator {
 			styleMatcher = stylePattern.matcher(resultString);
 			resultString = styleMatcher.replaceAll("");
 			
+			//resultString = Pattern.compile("<style[\u005e>]*?>*?</style[\u005e>]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
 			//remove the content within head
-			resultString = Pattern.compile("<[\\s]*?head[^>]*?>.*?<[^<>]*?/head[\\s]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
+			resultString = Pattern.compile("<[\\s]*?head[^>]*?>[\\s\\S]*?<[^<>]*?/head[\\s]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
 			//remove all forms
-			resultString = Pattern.compile("<[\\s]*?form[^>]*?>.*?<[^<>]*?/form[\\s]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
+			resultString = Pattern.compile("<[\\s]*?form[^>]*?>[\\s\\S]*?<[^<>]*?/form[\\s]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll("");
 			//remove the tag <span> and </span>,but keep the content inside them
 			resultString = Pattern.compile("<[\\s]*?span[^>]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll(" ");
 			resultString = Pattern.compile("<[^<>]*?/span[^>]*?>",Pattern.CASE_INSENSITIVE).matcher(resultString).replaceAll(" ");
