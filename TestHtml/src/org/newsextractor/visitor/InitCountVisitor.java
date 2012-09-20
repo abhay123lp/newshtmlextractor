@@ -65,22 +65,30 @@ public class InitCountVisitor {
 		
 		if(node instanceof Text)
 		{
-			AbstractNode parentNode = (AbstractNode) node.getParent();
-			if(parentNode == null)
+			if(((TextNode)node).isWhiteSpace())
 			{
-				node.setTextCount(((TextNode)node).getText().length());
 				node.setLinkCount(0);
-			}
-			else if(parentNode.getWithinHref())
-			{
-				node.setWithinHref(true);
-				node.setLinkCount(((TextNode)node).getText().length());
 				node.setTextCount(0);
 			}
-			else {
-				node.setTextCount(((TextNode)node).getText().length());
-				node.setLinkCount(0);
+			else{
+				AbstractNode parentNode = (AbstractNode) node.getParent();
+				if(parentNode == null)
+				{
+					node.setTextCount(((TextNode)node).getText().length());
+					node.setLinkCount(0);
+				}
+				else if(parentNode.getWithinHref())
+				{
+					node.setWithinHref(true);
+					node.setLinkCount(((TextNode)node).getText().length());
+					node.setTextCount(0);
+				}
+				else {
+					node.setTextCount(((TextNode)node).getText().length());
+					node.setLinkCount(0);
+				}
 			}
+			
 		}
 		else if(node instanceof TagNode)
 		{

@@ -16,7 +16,7 @@ public class HtmlFeature {
 		UrlFeatureDescriptionList = new Vector<String>(Arrays.asList(
 				"news/tech/stock1/ent/sports/auto/finance/book/edu/comic/games/baby/astro/lady/chanye/www/mil/bj/eladies/2008/business/money/it/digi/teamchina/yule/house/cul/learning/health/travel/women/nba/golf/weiqi/music/mobile/war/discover/history/"
 		//		"news/newshtml/newscenter/",
-				,"index/bbs/blog"
+				,"index/bbs/blog/slide"
 	//			,"bbs/"
 		//		,"blog/"
 	//			,"video/"
