@@ -12,8 +12,8 @@ import org.newsextractor.nodes.AdvanceTextNode;
 import org.newsextractor.textprocess.HtmlManipulator;
 
 public class RatioArbiter {
-	static double ratioThreshold=0.5;
-	static int TextCountThreshold=200;
+	static double ratioThreshold=0.75;
+	static int TextCountThreshold=150;
 	/**
 	 * Judge the file according to the ratio of text and link+text
 	 * Input the text of content

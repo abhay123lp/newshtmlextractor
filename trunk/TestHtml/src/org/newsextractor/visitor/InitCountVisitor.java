@@ -74,17 +74,21 @@ public class InitCountVisitor {
 				AbstractNode parentNode = (AbstractNode) node.getParent();
 				if(parentNode == null)
 				{
-					node.setTextCount(((TextNode)node).getText().length());
+					int count = ((TextNode)node).getText()/*.replaceAll("[^\\u4E00-\\u9FA5]", "")*/.length();
+					node.setTextCount(count);
 					node.setLinkCount(0);
 				}
 				else if(parentNode.getWithinHref())
 				{
 					node.setWithinHref(true);
-					node.setLinkCount(((TextNode)node).getText().length());
+					int count = ((TextNode)node).getText()/*.replaceAll("[^\\u4E00-\\u9FA5]", "")*/.length();
+					node.setTextCount(count);
+					node.setLinkCount(count);
 					node.setTextCount(0);
 				}
 				else {
-					node.setTextCount(((TextNode)node).getText().length());
+					int count = ((TextNode)node).getText()/*.replaceAll("[^\\u4E00-\\u9FA5]", "")*/.length();
+					node.setTextCount(count);
 					node.setLinkCount(0);
 				}
 			}
@@ -102,7 +106,6 @@ public class InitCountVisitor {
 			{
 				node.setLinkCount(0);
 				node.setTextCount(0);
-				
 			}
 			else {
 				NodeIterator iterator = nodeList.elements();
