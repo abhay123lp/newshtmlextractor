@@ -23,6 +23,16 @@ public class NewsArbiter {
 	 */
 	public void ArbitrateDirectoryAndDivide(String PathIn,String PathNewsOut,String PathOthersOut) throws IOException
 	{
+		File newsRootFile = new File(PathNewsOut);
+		File[] news = newsRootFile.listFiles();
+		for (int i = 0; i < news.length; i++) {
+			news[i].delete();
+		}
+		File othersRootFile = new File(PathOthersOut);
+		File[] othersFiles = othersRootFile.listFiles();
+		for (int i = 0; i < othersFiles.length; i++) {
+			othersFiles[i].delete();
+		}
 		File rootfile=new File(PathIn);
 		File[] ListFiles = rootfile.listFiles(new FileFilter() {
 			
